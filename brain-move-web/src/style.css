@@ -1064,6 +1064,45 @@ html, body {
 }
 .skip-link:focus { top: 0; }
 
+/* ── WEBCAM / GESTURE ── */
+
+.webcam-status {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 20px;
+  font-size: 22px;
+  color: var(--text-secondary);
+  z-index: 60;
+  white-space: nowrap;
+}
+
+.gesture-feedback {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 52px;
+  font-weight: 800;
+  padding: 24px 48px;
+  border-radius: var(--radius-lg);
+  z-index: 200;
+  animation: fadeInScale 0.3s ease;
+  white-space: nowrap;
+  box-shadow: 0 8px 40px rgba(21,101,192,0.3);
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
 /* ── SR ONLY ── */
 .sr-only {
   position: absolute;

@@ -59,6 +59,9 @@ export class App {
     this._initParticles()
     this._renderMenu()
     this._startLoop()
+    this.poseDetector.init().then(() => {
+      this._updateWebcamStatus()
+    })
     window.addEventListener('resize', () => this._resize())
   }
 
@@ -97,9 +100,10 @@ export class App {
 
   private _update(dt: number): void {
     this._updateParticles(dt)
+    const poseData = this.poseDetector.detect()
+    this.movementRules.update(poseData)
+    this._handleGestures(poseData)
     if (this.state === "playing" && this.currentGame) {
-      const poseData = this.poseDetector.detect()
-      this.movementRules.update(poseData)
       this.currentGame.update(poseData, dt)
       this.progressAnim += dt * 0.5
       this._updateFeedback(poseData)
@@ -189,23 +193,107 @@ export class App {
   }
 
   private _lastFeedbackMsg = ''
+  private _lastGestureTime = 0
+  private _gestureCooldown = 800
+  private _gestureIndicator: HTMLElement | null = null
 
   private _updateFeedback(poseData: PoseData | null): void {
     const fbEl = this.overlay.querySelector('.feedback-bar')
     if (fbEl && this.currentGame) {
       const msg = this.currentGame.feedbackMessage
       if (msg !== this._lastFeedbackMsg) {
-        fbEl.textContent = msg
-        const isCorrect = msg.includes('Perfetto') || msg.includes('Corretto') || msg.includes('corretta') || msg.includes('Giusto') || msg.includes('Bravo') || msg.includes('Ottimo') || msg.includes('giusto')
-        const isWrong = msg.includes('sbagliato') || msg.includes('riprova') || msg.includes('Riprova') || msg.includes('Non preoccuparti') || msg.includes('attenzione') || msg.includes('sbagliata') || msg.includes('errore')
-        fbEl.classList.remove('correct', 'wrong')
-        if (isCorrect) fbEl.classList.add('correct')
-        else if (isWrong) fbEl.classList.add('wrong')
+        const isCorrect = msg.includes('Perfetto') || msg.includes('Corretto') || msg.includes('corretta') || msg.includes('Giusto') || msg.includes('Bravo') || msg.includes('Ottimo') || msg.includes('giusto') || msg.includes('Trovata')
+        const isWrong = msg.includes('sbagliato') || msg.includes('riprova') || msg.includes('Riprova') || msg.includes('Non preoccuparti') || msg.includes('attenzione') || msg.includes('sbagliata') || msg.includes('errore') || msg.includes('non trovata')
+        const isComplete = msg.includes('completato') || msg.includes('Completato') || msg.includes('finish') || msg.includes('Fine')
+        fbEl.classList.remove('correct', 'wrong', 'complete')
+        if (isComplete) {
+          fbEl.classList.add('correct')
+          fbEl.innerHTML = '\u{1F3C6} ' + msg
+        } else if (isCorrect) {
+          fbEl.classList.add('correct')
+          fbEl.innerHTML = '\u2705 ' + msg
+        } else if (isWrong) {
+          fbEl.classList.add('wrong')
+          fbEl.innerHTML = '\u274C ' + msg
+        } else {
+          fbEl.textContent = msg
+        }
       }
       this._lastFeedbackMsg = msg
     }
     this._updateWidgets(poseData)
   }
+
+  private _handleGestures(poseData: PoseData | null): void {
+    if (!poseData) return
+    const now = Date.now()
+    if (now - this._lastGestureTime < this._gestureCooldown) return
+    const movement = this.movementRules.update(poseData)
+    if (movement === "center") return
+    const w = this.canvas.width
+    const armRaise = this.movementRules.detectArmRaise(this._lastPose ?? poseData, poseData)
+    this._lastPose = poseData
+    if (this.state === "menu") {
+      if ((movement === "right" || armRaise.right) && this.menuView === "main") {
+        this._lastGestureTime = now
+        this._showGestureFeedback("Destra \u{1F449}")
+        const breathIdx = this.games.findIndex(g => g.name === 'respiro_faro')
+        if (breathIdx >= 0) this._startGame(breathIdx)
+      } else if (movement === "forward" || armRaise.left) {
+        if (this.menuView === "main") {
+          this._lastGestureTime = now
+          this._showGestureFeedback("Giochi \u{1F3AE}")
+          this._showGameChoices()
+        } else {
+          this._lastGestureTime = now
+          this._showGestureFeedback("Indietro \u{2190}")
+          this._renderMenu()
+        }
+      } else if (movement === "left") {
+        if (this.menuView === "main") {
+          this._lastGestureTime = now
+          this._showGestureFeedback("Risultati \u{1F4CA}")
+          this._showReport()
+        }
+      }
+    } else if (this.state === "finished" || this.state === "report") {
+      if (movement === "forward" || armRaise.left) {
+        this._lastGestureTime = now
+        this._showGestureFeedback("Menu \u{1F3E0}")
+        this._backToMenu()
+      }
+    } else if (this.state === "playing" && this.currentGame) {
+      if (movement === "left") {
+        this._lastGestureTime = now
+        this._showGestureFeedback("Indietro \u{2190}")
+        this._backToMenu()
+      }
+    }
+  }
+
+  private _showGestureFeedback(text: string): void {
+    const existing = this.overlay.querySelector('.gesture-feedback')
+    if (existing) existing.remove()
+    const el = document.createElement('div')
+    el.className = 'gesture-feedback'
+    el.textContent = text
+    this.overlay.appendChild(el)
+    this.voice.speak(text, true)
+    setTimeout(() => el.remove(), 1200)
+  }
+
+  private _updateWebcamStatus(): void {
+    const existing = this.overlay.querySelector('.webcam-status')
+    if (existing) existing.remove()
+    const el = document.createElement('div')
+    el.className = 'webcam-status'
+    el.innerHTML = this.poseDetector.enabled
+      ? '\u{1F4F7} Webcam attiva'
+      : '\u{1F6AB} Webcam non disponibile - usa il tocco'
+    this.overlay.appendChild(el)
+  }
+
+  private _lastPose: PoseData | null = null
 
   private _updateWidgets(poseData: PoseData | null): void {
     if (this.currentGame) {
@@ -1052,7 +1140,7 @@ export class App {
     this.overlay.appendChild(screen)
 
     this.voice.startAutoRepeat(
-      'Benvenuto in Brain-Move. Scegli Giochi per allenare la mente, Respiro per rilassarti, oppure Risultati per vedere i tuoi progressi.',
+      'Scegli Giochi, Respiro o Risultati',
       20000
     )
   }
@@ -1203,23 +1291,23 @@ export class App {
 
     const gameName = g.displayName
     const voiceInstructions: Record<string, string> = {
-      'Respiro del Faro': 'Segui il cerchio che si allarga e si restringe. Inspira quando si allarga, espira quando si restringe.',
-      'Passi e Ricorda': 'Guarda la sequenza di immagini. Poi cammina sul posto per qualche secondo. Infine scegli le immagini nell\'ordine giusto.',
-      'Semaforo Esecutivo': 'Guarda il colore e la freccia. Fai il movimento mostrato. Se vedi la regola speciale, resta fermo.',
-      'Mappa della Stanza': 'Ricorda dove sono gli oggetti nella stanza. Poi mettili al posto giusto.',
-      'Costruisci il Modello': 'Guarda il modello da costruire. Poi usa i pezzi per ricrearlo.',
-      'Diario delle Missioni': 'Rispondi alle domande sul tuo umore e sulle tue attività.',
-      'Memory Carte': 'Ricorda dove sono le carte. Trova le coppie uguali.',
-      'Sequenza Simboli': 'Guarda la sequenza di simboli. Poi ripetila nello stesso ordine.',
-      'Parole Incrociate': 'Clicca sulla parola da completare. Scrivi le lettere una per una. Poi premi Verifica.',
-      'Basket': 'Lancia la palla nel canestro. Premi il pulsante per lanciare.',
-      'Puzzle': 'Scambia due tessere per ricreare l\'immagine originale. Clicca una tessera, poi clicca dove spostarla.',
-      'Memory Immagini': 'Memorizza le immagini. Poi trova le coppie uguali.',
-      'Brain Trainer': 'Rispondi alle domande di matematica, memoria e attenzione.',
-      'Musical Memory': 'Ascolta la sequenza di note. Poi ripetila premendo i pulsanti.',
-      'Palloncini': 'Scoppia i palloncini cliccandoli sopra prima che scappino via.',
-      'Quiz': 'Rispondi alle domande scegliendo la risposta giusta.',
-      'Cerca Parole': 'Trova le parole nascoste nella griglia. Clicca la prima lettera, poi clicca l\'ultima.',
+      'Respiro del Faro': 'Inspira ed espira seguendo il cerchio',
+      'Passi e Ricorda': 'Ricorda le immagini, cammina, poi scegli',
+      'Semaforo Esecutivo': 'Segui il colore e la freccia',
+      'Mappa della Stanza': 'Ricorda gli oggetti e mettili a posto',
+      'Costruisci il Modello': 'Guarda il modello e ricrealo',
+      'Diario delle Missioni': 'Rispondi alle domande',
+      'Memory Carte': 'Trova le coppie uguali',
+      'Sequenza Simboli': 'Guarda e ripeti la sequenza',
+      'Parole Incrociate': 'Completa le parole nella griglia',
+      'Basket': 'Lancia la palla nel canestro',
+      'Puzzle': 'Sposta le tessere per ricostruire',
+      'Memory Immagini': 'Trova le coppie di immagini',
+      'Brain Trainer': 'Rispondi alle domande',
+      'Musical Memory': 'Ascolta e ripeti le note',
+      'Palloncini': 'Scoppia i palloncini',
+      'Quiz': 'Scegli la risposta giusta',
+      'Cerca Parole': 'Trova le parole nella griglia',
     }
     const instruction = voiceInstructions[g.displayName] || `Gioca a ${g.displayName}`
     this._addVoiceBar(instruction)
