@@ -1,0 +1,21 @@
+{
+  "user_id": "utente_001",
+  "name": "Utente Demo",
+  "age": 72,
+  "mobility_level": "medio",
+  "requires_support": true,
+  "preferred_mode": "standing_with_support",
+  "webcam": {
+    "enabled": true,
+    "save_video": false,
+    "pose_only": true,
+    "fall_risk_detection": true,
+    "fatigue_detection": true
+  },
+  "safety": {
+    "max_session_minutes": 24,
+    "allow_lateral_steps": true,
+    "allow_forward_steps": false,
+    "seated_fallback": true
+  }
+}

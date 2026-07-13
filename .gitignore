@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated session data
+brain-move/data/session_*.json
+
+# Binary model files (download on first run)
+brain-move/data/pose_landmarker.task
+
+# OpenCode config
+.opencode/
