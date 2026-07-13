@@ -23,6 +23,7 @@ export class Palloncini extends BaseGame {
   spawnInterval = 2.0
   baseSpeed = 60
   maxBalloons = 6
+  targetPopped = 12
   instructionTimer = 0
   lastPopX = 0
   lastPopY = 0
@@ -46,6 +47,7 @@ export class Palloncini extends BaseGame {
     this.spawnInterval = Math.max(0.6, 2.0 - level * 0.2)
     this.baseSpeed = 50 + level * 12
     this.maxBalloons = Math.min(4 + level, 10)
+    this.targetPopped = 8 + level * 2
     this.feedbackMessage = "Scoppia i palloncini cliccandoli!"
   }
 
@@ -99,6 +101,7 @@ export class Palloncini extends BaseGame {
     const pts = 15
     this.scoring.addScore(this.name, pts)
     this.feedbackMessage = `+${pts} pt!`
+    if (this.popped >= this.targetPopped) this._finishGame()
   }
 
   private _finishGame(): void {

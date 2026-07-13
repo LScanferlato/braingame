@@ -68,9 +68,12 @@ export class Basket extends BaseGame {
 
   launchBall(hand: "right" | "left"): void {
     if (this.phase !== "ready" || this.ballFlying || hand !== this.throwHand) return
+    const gravity = 400
     const startPos: [number, number] = [400, 650]
-    const vx = (hand === "right" ? 1 : -1) * 300
-    const vy = -500
+    const hoopScreenX = this.hoopX * 800
+    const hoopScreenY = this.hoopY * 500
+    const vx = 2 * (hoopScreenX - startPos[0])
+    const vy = 2 * (hoopScreenY - startPos[1] - gravity * 0.125)
     this.ballFlying = true
     this.ballStartTime = Date.now()
     this.ballPos = startPos

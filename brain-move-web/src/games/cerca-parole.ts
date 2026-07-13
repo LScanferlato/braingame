@@ -67,6 +67,8 @@ export class CercaParole extends BaseGame {
     )
     this._placeWords()
     this._fillEmpty()
+    this.words = this.words.filter(w => this.placed.some(p => p.word === w.word))
+    this.totalWords = this.words.length
     this.feedbackMessage = `Trova ${this.totalWords} parole nella griglia`
   }
 

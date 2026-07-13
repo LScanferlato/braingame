@@ -4,12 +4,21 @@ export class VoiceGuide {
   private enabled = false
   private lastText = ''
   private repeatTimer: ReturnType<typeof setInterval> | null = null
+  private voices: SpeechSynthesisVoice[] = []
 
   constructor() {
     if ('speechSynthesis' in window) {
       this.synth = window.speechSynthesis
       this.enabled = true
+      this.voices = this.synth.getVoices()
+      this.synth.addEventListener('voiceschanged', () => {
+        this.voices = this.synth?.getVoices() ?? []
+      })
     }
+  }
+
+  private _pickVoice(): SpeechSynthesisVoice | undefined {
+    return this.voices.find(v => v.lang.toLowerCase().startsWith('it')) ?? this.voices[0]
   }
 
   speak(text: string, priority = false): void {
@@ -24,6 +33,8 @@ export class VoiceGuide {
     utterance.rate = 0.75
     utterance.pitch = 1.1
     utterance.volume = 1.0
+    const voice = this._pickVoice()
+    if (voice) utterance.voice = voice
     this.currentUtterance = utterance
     this.synth.speak(utterance)
   }

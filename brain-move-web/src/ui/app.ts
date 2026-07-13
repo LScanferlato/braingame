@@ -40,7 +40,7 @@ export class App {
   private sessionMode = false
   private pallonciniHandler: ((e: MouseEvent) => void) | null = null
   private lastPhase: string | null = null
-  private phaseCheckGames = new Set(['mappa_stanza', 'memory_carte', 'memory_immagini', 'cerca_parole', 'passi_ricorda', 'puzzle', 'quiz', 'brain_trainer', 'sequenza_simboli'])
+  private phaseCheckGames = new Set(['mappa_stanza', 'memory_carte', 'memory_immagini', 'cerca_parole', 'passi_ricorda', 'puzzle', 'quiz', 'brain_trainer', 'sequenza_simboli', 'costruisci_modello', 'valutazione'])
   private lastTime = 0
   private particles: Array<{ x: number; y: number; vx: number; vy: number; life: number; maxLife: number; size: number; color: string }> = []
   private confetti: Array<{ x: number; y: number; vx: number; vy: number; life: number; maxLife: number; size: number; color: string; rotation: number; rotSpeed: number }> = []
@@ -104,8 +104,8 @@ export class App {
   private _update(dt: number): void {
     this._updateParticles(dt)
     const poseData = this.poseDetector.detect()
-    this.movementRules.update(poseData)
-    this._handleGestures(poseData)
+    const movement = this.movementRules.update(poseData)
+    this._handleGestures(poseData, movement)
     if (this.state === "playing" && this.currentGame) {
       this.currentGame.update(poseData, dt)
       this.progressAnim += dt * 0.5
@@ -260,11 +260,10 @@ export class App {
     this._updateWidgets(poseData)
   }
 
-  private _handleGestures(poseData: PoseData | null): void {
+  private _handleGestures(poseData: PoseData | null, movement: string): void {
     if (!poseData) return
     const now = Date.now()
     if (now - this._lastGestureTime < this._gestureCooldown) return
-    const movement = this.movementRules.update(poseData)
     if (movement === "center") return
     const w = this.canvas.width
     const armRaise = this.movementRules.detectArmRaise(this._lastPose ?? poseData, poseData)
@@ -747,16 +746,17 @@ export class App {
     ctx.fill()
     const ballPos = game.getBallPos()
     if (ballPos) {
+      const sx = w / 800, sy = h / 500
       const trail = game.getBallTrail()
       trail.forEach((p, i) => {
         const alpha = i / trail.length
         ctx.beginPath()
-        ctx.arc(p[0], p[1], 8 + alpha * 6, 0, Math.PI * 2)
+        ctx.arc(p[0] * sx, p[1] * sy, 8 + alpha * 6, 0, Math.PI * 2)
         ctx.fillStyle = `rgba(255,150,50,${alpha * 0.4})`
         ctx.fill()
       })
       ctx.beginPath()
-      ctx.arc(ballPos[0], ballPos[1], 24, 0, Math.PI * 2)
+      ctx.arc(ballPos[0] * sx, ballPos[1] * sy, 24, 0, Math.PI * 2)
       ctx.fillStyle = '#ff9632'
       ctx.fill()
       ctx.strokeStyle = '#cc6a1a'

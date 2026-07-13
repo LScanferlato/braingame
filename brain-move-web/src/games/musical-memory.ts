@@ -76,6 +76,9 @@ export class MusicalMemory extends BaseGame {
         this.inputIndex = 0
         this.feedbackMessage = `Ripeti! (${this.round}/${this.maxRounds})`
       }
+    } else if (this.phase === "result") {
+      this.showTimer -= dt
+      if (this.showTimer <= 0) this._nextNote()
     }
   }
 
