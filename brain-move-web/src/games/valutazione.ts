@@ -1,6 +1,8 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
-interface Question { q: string; opts: string[] }
+interface Question { q: string; opts: string[]; correct: number }
 interface CaregiverQ { q: string; pts: number }
 
 const CAREGIVER_QS: CaregiverQ[] = [
@@ -27,14 +29,14 @@ const CAREGIVER_QS: CaregiverQ[] = [
 ]
 
 const COGNITIVO_QS: Question[] = [
-  { q: "Che giorno della settimana è oggi?", opts: ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"] },
-  { q: "In che mese siamo?", opts: ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"] },
-  { q: "In che stagione siamo?", opts: ["Primavera", "Estate", "Autunno", "Inverno"] },
-  { q: "Quanto fa 7 × 8 ?", opts: ["42", "48", "56", "64"] },
-  { q: "Quanto fa 93 − 27 ?", opts: ["56", "66", "76", "86"] },
-  { q: "Conta all'indietro da 20 a 1. Dopo 15?", opts: ["13", "14", "16", "12"] },
-  { q: "Quale NON era nella lista? BALL, BAND, CHIODO", opts: ["BALL", "BAND", "CHIODO", "CANE"] },
-  { q: "Orologio 11:10. Angolo tra lancette?", opts: ["~30°", "~90°", "~120°", "~150°"] },
+  { q: "Che giorno della settimana è oggi?", opts: ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"], correct: -1 },
+  { q: "In che mese siamo?", opts: ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"], correct: -1 },
+  { q: "In che stagione siamo?", opts: ["Primavera", "Estate", "Autunno", "Inverno"], correct: -1 },
+  { q: "Quanto fa 7 × 8 ?", opts: ["42", "48", "56", "64"], correct: 2 },
+  { q: "Quanto fa 93 − 27 ?", opts: ["56", "66", "76", "86"], correct: 1 },
+  { q: "Conta all'indietro da 20 a 1. Dopo 15?", opts: ["13", "14", "16", "12"], correct: 1 },
+  { q: "Quale NON era nella lista? BALL, BAND, CHIODO", opts: ["BALL", "BAND", "CHIODO", "CANE"], correct: 3 },
+  { q: "Orologio 11:10. Angolo tra lancette?", opts: ["~30°", "~90°", "~120°", "~150°"], correct: 1 },
 ]
 
 export class Valutazione extends BaseGame {
@@ -48,7 +50,7 @@ export class Valutazione extends BaseGame {
   feedbackText = ""
   feedbackTimer = 0
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "valutazione"
     this.displayName = "Test di Valutazione"
@@ -102,13 +104,18 @@ export class Valutazione extends BaseGame {
 
   answerCognitivo(idx: number): void {
     if (this.phase !== "playing" || this.step !== "cognitivo" || this.showFeedback || this.currentQ >= COGNITIVO_QS.length) return
-    const correct = idx === 0
+    const correctAnswer = COGNITIVO_QS[this.currentQ].correct
+    const correct = correctAnswer < 0 || idx === correctAnswer
     this.answers.push({ type: "cognitivo", idx, correct })
     if (correct) this.totalScore++
     this.maxScore++
     this.showFeedback = true
     this.feedbackTimer = 0.8
-    this.feedbackText = correct ? "Corretto!" : `La risposta era: ${COGNITIVO_QS[this.currentQ].opts[0]}`
+    if (correctAnswer < 0) {
+      this.feedbackText = "Risposta registrata"
+    } else {
+      this.feedbackText = correct ? "Corretto!" : `La risposta era: ${COGNITIVO_QS[this.currentQ].opts[correctAnswer]}`
+    }
   }
 
   getCurrentCaregiver(): CaregiverQ | null {

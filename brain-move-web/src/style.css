@@ -297,6 +297,38 @@ html, body {
   background: rgba(60,200,60,0.2);
   border-color: #3cc83c;
   opacity: 0.7;
+  cursor: default;
+}
+
+.memory-card.wrong {
+  background: rgba(220,60,60,0.25);
+  border-color: #ff4444;
+  animation: shake 0.4s ease;
+}
+
+.memory-grid-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 8px;
+}
+
+.memory-study-timer {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 12px;
+  text-align: center;
+  animation: glowPulse 1s ease infinite;
+}
+
+.memory-instruction {
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-primary);
+  padding: 40px 16px;
 }
 
 /* ── Puzzle ── */
@@ -689,4 +721,80 @@ html, body {
   animation: shake 0.4s ease;
   border-color: #ff4444 !important;
   background: rgba(255,68,68,0.2) !important;
+}
+
+.cerca-parole-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+}
+
+.cerca-parole-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 400px;
+}
+
+.cerca-parole-word {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(100,180,255,0.2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+.cerca-parole-word.found {
+  background: rgba(60,200,60,0.15);
+  border-color: #3cc83c;
+  color: #80d880;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.cerca-parole-grid {
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+}
+
+.cerca-parole-cell {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ccc;
+  background: rgba(20,30,60,0.6);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.cerca-parole-cell:hover {
+  background: rgba(100,180,255,0.15);
+}
+
+.cerca-parole-cell.found {
+  background: rgba(60,200,60,0.2);
+  color: #80d880;
+  cursor: default;
+}
+
+.cerca-parole-cell.selected {
+  background: rgba(100,180,255,0.3);
+  color: #fff;
+  box-shadow: 0 0 8px rgba(100,180,255,0.3);
 }

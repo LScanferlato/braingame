@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 import type { QuestionData } from '../types'
 
 const QUESTIONS: QuestionData[] = [
@@ -36,7 +38,7 @@ export class Quiz extends BaseGame {
   feedbackTimer = 0
   instructionTimer = 0
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "quiz"
     this.displayName = "Quiz"

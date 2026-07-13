@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 const SHAPES: Record<string, { shape: string; color: string; label: string }> = {
   cerchio_rosso: { shape: "circle", color: "#dc3232", label: "Cerchio Rosso" },
@@ -17,7 +19,7 @@ export class CostruisciModello extends BaseGame {
   showDuration = 15.0
   availablePieces = Object.keys(SHAPES)
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "costruisci_modello"
     this.displayName = "Costruisci il Modello"

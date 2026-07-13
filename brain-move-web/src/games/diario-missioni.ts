@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 const QUESTIONS = [
   "Quale gioco ti è piaciuto di più oggi?",
@@ -26,7 +28,7 @@ export class DiarioMissioni extends BaseGame {
   caregiverNotes: string[] = []
   phase: "questions" | "caregiver" = "questions"
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "diario_missioni"
     this.displayName = "Diario delle Missioni"

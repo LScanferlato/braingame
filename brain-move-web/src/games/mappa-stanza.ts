@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 const OBJECTS: Record<string, string> = {
   sedia: "\u{1F6CB}", tavolo: "\u{1F4CB}", pianta: "\u{1F333}",
@@ -14,7 +16,7 @@ export class MappaStanza extends BaseGame {
   showTimer = 0
   showDuration = 8.0
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "mappa_stanza"
     this.displayName = "Mappa della Stanza"

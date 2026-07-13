@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 const SYMBOLS: Record<string, string> = {
   gatto: "\u{1F431}", cane: "\u{1F436}", coniglio: "\u{1F430}",
@@ -22,7 +24,7 @@ export class SequenzaSimboli extends BaseGame {
   flashTimer = 0
   flashDuration = 0
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "sequenza_simboli"
     this.displayName = "Sequenza Simboli"

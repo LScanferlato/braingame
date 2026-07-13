@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 export class BrainTrainer extends BaseGame {
   phase: "instruction" | "playing" | "result" = "instruction"
@@ -13,7 +15,7 @@ export class BrainTrainer extends BaseGame {
   resultTimer = 0
   subGames = ["math", "recall", "count"]
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "brain_trainer"
     this.displayName = "Brain Trainer"

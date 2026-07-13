@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 const COLORS: Record<string, string> = {
   rosso: "#e63c3c", blu: "#3282e6", verde: "#3cc83c",
@@ -22,8 +24,10 @@ export class Palloncini extends BaseGame {
   baseSpeed = 60
   maxBalloons = 6
   instructionTimer = 0
+  lastPopX = 0
+  lastPopY = 0
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "palloncini"
     this.displayName = "Palloncini"
@@ -87,6 +91,9 @@ export class Palloncini extends BaseGame {
 
   popBalloon(index: number): void {
     if (this.phase !== "playing" || index < 0 || index >= this.balloons.length) return
+    const b = this.balloons[index]
+    this.lastPopX = b.x
+    this.lastPopY = b.y
     this.balloons.splice(index, 1)
     this.popped++
     const pts = 15

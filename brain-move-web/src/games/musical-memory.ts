@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 export class MusicalMemory extends BaseGame {
   phase: "instruction" | "showing" | "input" | "result" = "instruction"
@@ -19,7 +21,7 @@ export class MusicalMemory extends BaseGame {
   freqs = [262, 330, 392, 523]
   labels = ["Do", "Mi", "Sol", "Do'"]
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "musical_memory"
     this.displayName = "Musical Memory"

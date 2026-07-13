@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 const FAMILIAR: Record<string, string> = {
   nonno: "\u{1F474}", nonna: "\u{1F475}", mamma: "\u{1F469}", papa: "\u{1F468}",
@@ -18,6 +20,8 @@ export class MemoryImmagini extends BaseGame {
   matched: boolean[] = []
   firstCard: number | null = null
   secondCardIdx: number | null = null
+  wrongCard1: number | null = null
+  wrongCard2: number | null = null
   waiting = false
   waitTimer = 0
   pairsFound = 0
@@ -27,7 +31,7 @@ export class MemoryImmagini extends BaseGame {
   studyTimer = 0
   studyDuration = 5
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "memory_immagini"
     this.displayName = "Memory Immagini"
@@ -95,7 +99,7 @@ export class MemoryImmagini extends BaseGame {
   private _endWait(): void {
     if (this.firstCard !== null) this.revealed[this.firstCard] = false
     if (this.secondCardIdx !== null) this.revealed[this.secondCardIdx] = false
-    this.firstCard = null; this.waiting = false
+    this.firstCard = null; this.secondCardIdx = null; this.waiting = false
   }
 
   private _finishGame(): void {
@@ -109,6 +113,9 @@ export class MemoryImmagini extends BaseGame {
   getProgress(): number { return this.pairsFound / Math.max(this.totalPairs, 1) }
   isCardRevealed(idx: number): boolean { return this.revealed[idx] }
   isCardMatched(idx: number): boolean { return this.matched[idx] }
+  isCardWrong(idx: number): boolean {
+    return this.waiting && (idx === this.firstCard || idx === this.secondCardIdx)
+  }
   getCardIcon(idx: number): string { return this.cards[idx]?.icon ?? "?" }
   getGridSize(): [number, number] { return [this.gridRows, this.gridCols] }
 }

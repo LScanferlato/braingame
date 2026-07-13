@@ -15,6 +15,7 @@ import { MusicalMemory } from './musical-memory'
 import { Palloncini } from './palloncini'
 import { Quiz } from './quiz'
 import { Valutazione } from './valutazione'
+import { CercaParole } from './cerca-parole'
 import { Difficulty } from '../engine/difficulty'
 import { Scoring } from '../engine/scoring'
 import type { BaseGame } from './base-game'
@@ -45,6 +46,7 @@ export function createAllGames(difficulty: Difficulty, scoring: Scoring): BaseGa
     new MusicalMemory(difficulty, scoring),
     new Palloncini(difficulty, scoring),
     new Quiz(difficulty, scoring),
+    new CercaParole(difficulty, scoring),
     new Valutazione(difficulty, scoring),
   ]
 }
@@ -66,5 +68,6 @@ export const GAME_MENU_DATA: Array<{ name: string; displayName: string; descript
   { name: "musical_memory", displayName: "Musical Memory", description: "Memoria musicale", icon: "\u{1F3B5}", cognitive: "Memoria uditiva" },
   { name: "palloncini", displayName: "Palloncini", description: "Scoppia i palloncini", icon: "\u{1F388}", cognitive: "Attenzione" },
   { name: "quiz", displayName: "Quiz", description: "Domande culturali", icon: "\u{2753}", cognitive: "Cultura generale" },
+  { name: "cerca_parole", displayName: "Cerca Parole", description: "Trova le parole nella griglia", icon: "\u{1F50D}", cognitive: "Attenzione visiva" },
   { name: "valutazione", displayName: "Test Valutativo", description: "Valutazione cognitiva", icon: "\u{1F9D1}\u200D\u{1F3EB}", cognitive: "Assessment" },
 ]

@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 export class RespiroFaro extends BaseGame {
   phase: "inspira" | "espira" = "inspira"
@@ -9,7 +11,7 @@ export class RespiroFaro extends BaseGame {
   circleScale = 0.3
   instructions = ["Inspira lentamente...", "Espira lentamente...", "Mantieni il ritmo..."]
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "respiro_faro"
     this.displayName = "Respiro del Faro"

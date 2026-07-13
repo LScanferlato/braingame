@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 export class Basket extends BaseGame {
   phase: "instruction" | "ready" | "thrown" = "instruction"
@@ -19,7 +21,7 @@ export class Basket extends BaseGame {
   scoreTimer = 0
   instructionTimer = 0
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "basket"
     this.displayName = "Basket"

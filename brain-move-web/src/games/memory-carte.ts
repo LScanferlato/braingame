@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 const SYMBOLS: Record<string, string> = {
   gatto: "\u{1F431}", cane: "\u{1F436}", leone: "\u{1F981}",
@@ -26,7 +28,7 @@ export class MemoryCarte extends BaseGame {
   showAllTimer = 0
   showAllDuration = 3.0
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "memory_carte"
     this.displayName = "Memory Carte"
@@ -65,10 +67,6 @@ export class MemoryCarte extends BaseGame {
         this.feedbackMessage = "Trova le coppie! Seleziona due carte"
       }
     } else if (this.phase === "playing" && this.waiting) {
-      if (this.waitDelay !== undefined) {
-        this.waitDelay -= dt ?? 0.016
-        if (this.waitDelay <= 0) this._hidePair()
-      }
       const elapsed = (Date.now() - this.waitTimer) / 1000
       if (elapsed >= this.waitDelay) this._hidePair()
     }

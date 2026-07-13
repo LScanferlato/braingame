@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 const COLORS: Record<string, { action: string; display: string; label: string }> = {
   verde: { action: "passo_avanti", display: "\u{1F7E2}", label: "Avanti" },
@@ -20,7 +22,7 @@ export class SemaforoEsecutivo extends BaseGame {
   responseReceived = false
   inhibitionMode = false
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "semaforo_esecutivo"
     this.displayName = "Semaforo Esecutivo"

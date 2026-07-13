@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 const ITEMS = ["mela", "chiave", "fiore", "casa", "sole", "tazza", "libro", "stella"]
 const ITEM_ICONS: Record<string, string> = {
@@ -21,7 +23,7 @@ export class PassiRicorda extends BaseGame {
   feedbackTimer = 0
   lastAttemptCorrect = false
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "passi_ricorda"
     this.displayName = "Passi e Ricorda"

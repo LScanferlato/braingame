@@ -38,7 +38,7 @@ export class App {
   private sessionMode = false
   private pallonciniHandler: ((e: MouseEvent) => void) | null = null
   private lastPhase: string | null = null
-  private phaseCheckGames = new Set(['mappa_stanza', 'memory_carte', 'memory_immagini'])
+  private phaseCheckGames = new Set(['mappa_stanza', 'memory_carte', 'memory_immagini', 'cerca_parole'])
   private lastTime = 0
   private particles: Array<{ x: number; y: number; vx: number; vy: number; life: number; maxLife: number; size: number; color: string }> = []
   private confetti: Array<{ x: number; y: number; vx: number; vy: number; life: number; maxLife: number; size: number; color: string; rotation: number; rotSpeed: number }> = []
@@ -133,6 +133,7 @@ export class App {
     if (g.name === 'memory_carte') this._renderMemoryCarteUI(newArea)
     else if (g.name === 'memory_immagini') this._renderMemoryImmaginiUI(newArea)
     else if (g.name === 'mappa_stanza') this._renderMappaUI(newArea)
+    else if (g.name === 'cerca_parole') this._renderCercaParoleUI(newArea)
     oldArea.parentNode?.replaceChild(newArea, oldArea)
   }
 
@@ -269,6 +270,7 @@ export class App {
       case "musical_memory": this._drawMusicalMemory(ctx, w, h); break
       case "palloncini": this._drawPalloncini(ctx, w, h); break
       case "quiz": break
+      case "cerca_parole": this._drawCercaParole(ctx, w, h); break
       case "valutazione": break
     }
 
@@ -654,16 +656,38 @@ export class App {
   private _drawMemoryImmagini(ctx: CanvasRenderingContext2D, w: number, h: number): void {
     const game = this.currentGame as import('../games/memory-immagini').MemoryImmagini
     ctx.save()
+    if (game.phase === "instruction") {
+      ctx.fillStyle = 'white'
+      ctx.font = 'bold 28px system-ui'
+      ctx.textAlign = 'center'
+      ctx.fillText("Preparati a memorizzare le immagini!", w / 2, h / 2 - 40)
+      ctx.font = '20px system-ui'
+      ctx.fillStyle = 'var(--accent,#64b4ff)'
+      ctx.fillText("Tra poco tutte le carte saranno visibili", w / 2, h / 2 + 10)
+      ctx.restore()
+      return
+    }
+    if (game.phase === "study") {
+      const elapsed = Math.min((Date.now() - game.studyTimer) / 1000, game.studyDuration)
+      const remaining = Math.ceil(game.studyDuration - elapsed)
+      ctx.fillStyle = 'rgba(100,180,255,0.8)'
+      ctx.font = 'bold 22px system-ui'
+      ctx.textAlign = 'center'
+      ctx.fillText(`Memorizza... ${remaining}s`, w / 2, 40)
+    }
     const [rows, cols] = game.getGridSize()
-    const size = Math.min(70, (w - 80) / cols - 8)
-    const startX = (w - cols * (size + 8)) / 2
-    const startY = (h - rows * (size + 8)) / 2
+    const size = Math.min(64, (w - 60) / cols - 6)
+    const startX = (w - cols * (size + 6)) / 2
+    const startY = Math.max(game.phase === "study" ? 60 : 20, (h - rows * (size + 6)) / 2)
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const idx = r * cols + c
-        const x = startX + c * (size + 8), y = startY + r * (size + 8)
+        const x = startX + c * (size + 6), y = startY + r * (size + 6)
+        const wrong = game.isCardWrong(idx)
         if (game.isCardMatched(idx)) {
-          ctx.fillStyle = 'rgba(60,200,60,0.2)'
+          ctx.fillStyle = 'rgba(60,200,60,0.25)'
+        } else if (wrong) {
+          ctx.fillStyle = 'rgba(220,60,60,0.35)'
         } else if (game.isCardRevealed(idx)) {
           ctx.fillStyle = 'rgba(40,60,100,0.9)'
         } else {
@@ -672,16 +696,21 @@ export class App {
         ctx.beginPath()
         ctx.roundRect(x, y, size, size, 8)
         ctx.fill()
+        if (wrong) {
+          ctx.strokeStyle = '#ff4444'
+          ctx.lineWidth = 2
+          ctx.stroke()
+        }
         if (game.isCardRevealed(idx) || game.isCardMatched(idx)) {
           ctx.fillStyle = 'white'
-          ctx.font = '28px system-ui'
+          ctx.font = `${Math.min(28, size - 8)}px system-ui`
           ctx.textAlign = 'center'
-          ctx.fillText(game.getCardIcon(idx), x + size / 2, y + size / 2 + 10)
+          ctx.fillText(game.getCardIcon(idx), x + size / 2, y + size / 2 + 8)
         } else {
           ctx.fillStyle = 'rgba(100,180,255,0.3)'
-          ctx.font = '24px system-ui'
+          ctx.font = `${Math.min(22, size - 8)}px system-ui`
           ctx.textAlign = 'center'
-          ctx.fillText('?', x + size / 2, y + size / 2 + 8)
+          ctx.fillText('?', x + size / 2, y + size / 2 + 6)
         }
       }
     }
@@ -764,25 +793,142 @@ export class App {
     ctx.restore()
   }
 
+  private _drawCercaParole(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+    const game = this.currentGame as import('../games/cerca-parole').CercaParole
+    ctx.save()
+    const gs = game.getGridSize()
+    const cellSize = Math.min(36, (w - 60) / gs, (h - 80) / gs)
+    const startX = (w - gs * cellSize) / 2
+    const startY = (h - gs * cellSize) / 2 + 10
+    for (let r = 0; r < gs; r++) {
+      for (let c = 0; c < gs; c++) {
+        const x = startX + c * cellSize
+        const y = startY + r * cellSize
+        if (game.isFound(r, c)) {
+          ctx.fillStyle = 'rgba(60,200,60,0.2)'
+        } else if (game.isSelected(r, c)) {
+          ctx.fillStyle = 'rgba(100,180,255,0.3)'
+        } else {
+          ctx.fillStyle = 'rgba(20,30,60,0.7)'
+        }
+        ctx.beginPath()
+        ctx.roundRect(x, y, cellSize - 2, cellSize - 2, 4)
+        ctx.fill()
+        if (game.isFound(r, c)) {
+          ctx.strokeStyle = 'rgba(60,200,60,0.5)'
+          ctx.lineWidth = 1
+          ctx.stroke()
+        }
+        ctx.fillStyle = game.isFound(r, c) ? '#80d880' : '#eee'
+        ctx.font = `${Math.max(12, cellSize - 10)}px system-ui`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(game.grid[r][c], x + cellSize / 2, y + cellSize / 2)
+      }
+    }
+    ctx.restore()
+  }
+
   private _drawPalloncini(ctx: CanvasRenderingContext2D, w: number, h: number): void {
     const game = this.currentGame as import('../games/palloncini').Palloncini
     ctx.save()
+
+    if (game.phase === "instruction") {
+      ctx.fillStyle = 'white'
+      ctx.font = 'bold 30px system-ui'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText("Scoppia i palloncini!", w / 2, h / 2 - 30)
+      ctx.fillStyle = '#64b4ff'
+      ctx.font = '20px system-ui'
+      ctx.fillText("Clicca sui palloncini per scoppiarli", w / 2, h / 2 + 15)
+      ctx.restore()
+      return
+    }
+
     for (const b of game.balloons) {
+      const r = b.radius
+      const bw = r * 1.6
+      const bh = r * 2.4
+      const wobX = Math.sin(b.wobbleT * 1.5) * 3
+      const cx = b.x + wobX
+      const cy = b.y
+      const topY = cy - bh * 0.45
+      const botY = cy + bh * 0.45
+
+      // glow
       ctx.beginPath()
-      ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2)
-      ctx.fillStyle = b.color + '80'
+      ctx.arc(cx, cy, r * 1.1, 0, Math.PI * 2)
+      ctx.fillStyle = b.color + '20'
+      ctx.fill()
+
+      // balloon teardrop shape
+      ctx.beginPath()
+      ctx.moveTo(cx, topY)
+      ctx.bezierCurveTo(cx + bw * 0.45, topY, cx + bw * 0.7, cy - bh * 0.1, cx + bw * 0.6, cy)
+      ctx.bezierCurveTo(cx + bw * 0.52, cy + bh * 0.15, cx + bw * 0.2, botY - bh * 0.05, cx, botY)
+      ctx.bezierCurveTo(cx - bw * 0.2, botY - bh * 0.05, cx - bw * 0.52, cy + bh * 0.15, cx - bw * 0.6, cy)
+      ctx.bezierCurveTo(cx - bw * 0.7, cy - bh * 0.1, cx - bw * 0.45, topY, cx, topY)
+      ctx.closePath()
+
+      // gradient fill
+      const grad = ctx.createRadialGradient(cx - bw * 0.15, cy - bh * 0.15, 0, cx, cy, bw * 0.6)
+      grad.addColorStop(0, '#ffffff')
+      grad.addColorStop(0.15, b.color)
+      grad.addColorStop(0.7, b.color)
+      grad.addColorStop(1, '#000000')
+      ctx.fillStyle = grad
+      ctx.fill()
+
+      // inner glow / highlight overlay
+      ctx.beginPath()
+      ctx.moveTo(cx, topY + bh * 0.08)
+      ctx.bezierCurveTo(cx + bw * 0.25, topY + bh * 0.1, cx + bw * 0.35, cy - bh * 0.05, cx + bw * 0.3, cy - bh * 0.1)
+      ctx.bezierCurveTo(cx + bw * 0.2, cy - bh * 0.2, cx - bw * 0.15, cy - bh * 0.2, cx - bw * 0.25, cy - bh * 0.1)
+      ctx.bezierCurveTo(cx - bw * 0.3, cy - bh * 0.05, cx - bw * 0.2, topY + bh * 0.1, cx, topY + bh * 0.08)
+      ctx.closePath()
+      ctx.fillStyle = 'rgba(255,255,255,0.15)'
+      ctx.fill()
+
+      // specular highlight 1 (upper left)
+      ctx.save()
+      ctx.beginPath()
+      ctx.ellipse(cx - bw * 0.2, cy - bh * 0.2, bw * 0.12, bh * 0.08, -0.4, 0, Math.PI * 2)
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'
+      ctx.fill()
+
+      // specular highlight 2 (upper right, smaller)
+      ctx.beginPath()
+      ctx.ellipse(cx + bw * 0.15, cy - bh * 0.25, bw * 0.06, bh * 0.04, 0.3, 0, Math.PI * 2)
+      ctx.fillStyle = 'rgba(255,255,255,0.25)'
+      ctx.fill()
+      ctx.restore()
+
+      // knot
+      const knotY = botY + 2
+      ctx.beginPath()
+      ctx.moveTo(cx - 5, knotY)
+      ctx.lineTo(cx + 5, knotY)
+      ctx.lineTo(cx + 3, knotY + 7)
+      ctx.lineTo(cx - 3, knotY + 7)
+      ctx.closePath()
+      ctx.fillStyle = b.color
       ctx.fill()
       ctx.strokeStyle = b.color
-      ctx.lineWidth = 2
-      ctx.stroke()
-      const stringEnd = b.y + b.radius + 30
-      ctx.beginPath()
-      ctx.moveTo(b.x, b.y + b.radius)
-      ctx.quadraticCurveTo(b.x - 5, b.y + b.radius + 15, b.x - 3, stringEnd)
-      ctx.strokeStyle = 'rgba(200,200,200,0.4)'
       ctx.lineWidth = 1
       ctx.stroke()
+
+      // string
+      const stringEnd = knotY + 26
+      ctx.beginPath()
+      ctx.moveTo(cx, knotY + 5)
+      const sway = Math.sin(b.wobbleT * 2.5) * 8
+      ctx.quadraticCurveTo(cx - 8 + sway, knotY + 12, cx - 3 + sway * 0.6, stringEnd)
+      ctx.strokeStyle = 'rgba(200,200,200,0.35)'
+      ctx.lineWidth = 1.5
+      ctx.stroke()
     }
+
     ctx.restore()
   }
 
@@ -847,6 +993,7 @@ export class App {
     this.currentGame.start()
     this.state = "playing"
     this.progressAnim = 0
+    this.lastScore = 0
     this.lastPhase = (this.currentGame as unknown as Record<string, unknown>).phase as string ?? null
     this._renderGameUI()
   }
@@ -854,6 +1001,7 @@ export class App {
   private _startSession(): void {
     this.sessionMode = true
     this.scoring.reset()
+    this.lastScore = 0
     this.difficulty = new Difficulty()
     this.games.forEach(g => { g.running = false; g.state = "idle" })
     this.games = createAllGames(this.difficulty, this.scoring)
@@ -910,6 +1058,7 @@ export class App {
     else if (g.name === 'basket') this._renderBasketUI(gameArea)
     else if (g.name === 'palloncini') this._renderPallonciniUI(gameArea)
     else if (g.name === 'semaforo_esecutivo') this._renderSemaforoUI(gameArea)
+    else if (g.name === 'cerca_parole') this._renderCercaParoleUI(gameArea)
 
     this.overlay.appendChild(gameArea)
 
@@ -1266,15 +1415,34 @@ export class App {
     container.className = 'memory-grid-container'
     const render = () => {
       container.innerHTML = ''
-      if (game.phase === "instruction") return
+      if (game.phase === "instruction") {
+        const msg = document.createElement('div')
+        msg.className = 'memory-instruction'
+        msg.textContent = "Preparati a memorizzare le immagini!"
+        container.appendChild(msg)
+        return
+      }
+      if (game.phase === "study") {
+        const elapsed = Math.min((Date.now() - game.studyTimer) / 1000, game.studyDuration)
+        const remaining = Math.ceil(game.studyDuration - elapsed)
+        const timer = document.createElement('div')
+        timer.className = 'memory-study-timer'
+        timer.textContent = `Memorizza... ${remaining}s`
+        container.appendChild(timer)
+      }
       const [rows, cols] = game.getGridSize()
+      const size = Math.min(72, Math.floor((area.clientWidth - 48) / cols - 8))
       const grid = document.createElement('div')
       grid.className = 'memory-grid'
-      grid.style.gridTemplateColumns = `repeat(${cols}, 72px)`
+      grid.style.gridTemplateColumns = `repeat(${cols}, ${size}px)`
       for (let i = 0; i < rows * cols; i++) {
         const card = document.createElement('div')
-        card.className = `memory-card ${game.isCardMatched(i) ? 'matched' : ''} ${game.isCardRevealed(i) ? 'revealed' : ''}`
+        const wrong = game.isCardWrong(i)
+        card.className = `memory-card ${game.isCardMatched(i) ? 'matched' : ''} ${game.isCardRevealed(i) && !wrong ? 'revealed' : ''} ${wrong ? 'wrong' : ''}`
         card.textContent = game.isCardRevealed(i) || game.isCardMatched(i) ? game.getCardIcon(i) : '?'
+        card.style.width = `${size}px`
+        card.style.height = `${size}px`
+        card.style.fontSize = `${Math.max(16, size - 12)}px`
         card.addEventListener('click', () => { game.selectCard(i); render() })
         grid.appendChild(card)
       }
@@ -1363,7 +1531,10 @@ export class App {
         const b = game.balloons[i]
         const dx = x - b.x, dy = y - b.y
         if (dx * dx + dy * dy < b.radius * b.radius) {
-          game.popBalloon(i); break
+          game.popBalloon(i)
+          this._burstConfetti(b.x, b.y, 12, [b.color, '#ffffff', '#ffd93d'])
+          this._showScoreFloat(b.x - 20, b.y - 40, '+15', true)
+          break
         }
       }
     }
@@ -1391,6 +1562,40 @@ export class App {
         })
       container.appendChild(btn)
     })
+    area.appendChild(container)
+  }
+
+  private _renderCercaParoleUI(area: HTMLElement): void {
+    const game = this.currentGame as import('../games/cerca-parole').CercaParole
+    const container = document.createElement('div')
+    container.className = 'cerca-parole-container'
+    const render = () => {
+      container.innerHTML = ''
+      const wordsDiv = document.createElement('div')
+      wordsDiv.className = 'cerca-parole-words'
+      game.words.forEach(w => {
+        const el = document.createElement('span')
+        el.className = `cerca-parole-word ${w.found ? 'found' : ''}`
+        el.textContent = w.word
+        wordsDiv.appendChild(el)
+      })
+      container.appendChild(wordsDiv)
+      const grid = document.createElement('div')
+      grid.className = 'cerca-parole-grid'
+      const gs = game.getGridSize()
+      grid.style.gridTemplateColumns = `repeat(${gs}, 36px)`
+      for (let r = 0; r < gs; r++) {
+        for (let c = 0; c < gs; c++) {
+          const cell = document.createElement('div')
+          cell.className = `cerca-parole-cell ${game.isFound(r, c) ? 'found' : ''} ${game.isSelected(r, c) ? 'selected' : ''}`
+          cell.textContent = game.grid[r][c]
+          cell.addEventListener('click', () => { game.selectCell(r, c); render() })
+          grid.appendChild(cell)
+        }
+      }
+      container.appendChild(grid)
+    }
+    render()
     area.appendChild(container)
   }
 

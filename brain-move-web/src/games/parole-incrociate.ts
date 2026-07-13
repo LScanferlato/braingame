@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 const WORDS = [
   { word: "CASA", hint: "Dove abiti" }, { word: "MARE", hint: "Acqua salata e grande" },
@@ -33,7 +35,7 @@ export class ParoleIncrociate extends BaseGame {
   attempts = 0
   phase: "playing" = "playing"
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "parole_incrociate"
     this.displayName = "Parole Incrociate"

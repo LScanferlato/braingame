@@ -1,4 +1,6 @@
 import { BaseGame } from './base-game'
+import { Difficulty } from '../engine/difficulty'
+import { Scoring } from '../engine/scoring'
 
 const EMOJI_POOL = [
   "\u{1F34E}", "\u{1F34A}", "\u{1F34B}", "\u{1F347}", "\u{1F349}", "\u{1F353}",
@@ -20,7 +22,7 @@ export class Puzzle extends BaseGame {
   maxHints = 3
   instructionTimer = 0
 
-  constructor(difficulty: any, scoring: any) {
+  constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
     this.name = "puzzle"
     this.displayName = "Puzzle"
