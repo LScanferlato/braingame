@@ -225,11 +225,7 @@ export class App {
     if (!w || !h) return
     const ctx = this.ctx
 
-    const gradient = ctx.createRadialGradient(w * 0.5, h * 0.5, 0, w * 0.5, h * 0.5, w * 0.8)
-    gradient.addColorStop(0, '#0a0e27')
-    gradient.addColorStop(0.5, '#0d1333')
-    gradient.addColorStop(1, '#060918')
-    ctx.fillStyle = gradient
+    ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, w, h)
 
     for (const p of this.particles) {
@@ -282,10 +278,10 @@ export class App {
     }
 
     ctx.save()
-    ctx.strokeStyle = 'rgba(100,180,255,0.15)'
-    ctx.lineWidth = 1
-    ctx.setLineDash([5, 5])
-    ctx.strokeRect(20, 20, w - 40, h - 40)
+    ctx.strokeStyle = 'rgba(21,101,192,0.12)'
+    ctx.lineWidth = 2
+    ctx.setLineDash([8, 8])
+    ctx.strokeRect(24, 24, w - 48, h - 48)
     ctx.restore()
   }
 
@@ -296,38 +292,38 @@ export class App {
     const r = maxR * faro.getCircleScale()
 
     ctx.save()
-    const glow = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 2)
-    glow.addColorStop(0, 'rgba(100,180,255,0.3)')
-    glow.addColorStop(0.5, 'rgba(100,180,255,0.1)')
-    glow.addColorStop(1, 'rgba(100,180,255,0)')
+    const glow = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 2.5)
+    glow.addColorStop(0, 'rgba(21,101,192,0.2)')
+    glow.addColorStop(0.5, 'rgba(21,101,192,0.08)')
+    glow.addColorStop(1, 'rgba(21,101,192,0)')
     ctx.fillStyle = glow
     ctx.beginPath()
-    ctx.arc(cx, cy, r * 2, 0, Math.PI * 2)
+    ctx.arc(cx, cy, r * 2.5, 0, Math.PI * 2)
     ctx.fill()
 
     ctx.beginPath()
     ctx.arc(cx, cy, r, 0, Math.PI * 2)
     const grad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, 0, cx, cy, r)
-    grad.addColorStop(0, '#64b4ff')
-    grad.addColorStop(0.5, '#3a7bd5')
-    grad.addColorStop(1, '#1a3a6a')
+    grad.addColorStop(0, '#64b5f6')
+    grad.addColorStop(0.5, '#1e88e5')
+    grad.addColorStop(1, '#0d47a1')
     ctx.fillStyle = grad
     ctx.fill()
 
-    ctx.strokeStyle = 'rgba(100,180,255,0.6)'
-    ctx.lineWidth = 3
+    ctx.strokeStyle = 'rgba(13,71,161,0.5)'
+    ctx.lineWidth = 4
     ctx.stroke()
 
     for (let i = 0; i < 3; i++) {
       ctx.beginPath()
-      ctx.arc(cx, cy, r + 10 + i * 8 + Math.sin(this.progressAnim * 2 + i) * 3, 0, Math.PI * 2)
-      ctx.strokeStyle = `rgba(100,180,255,${0.2 - i * 0.05})`
-      ctx.lineWidth = 1
+      ctx.arc(cx, cy, r + 12 + i * 10 + Math.sin(this.progressAnim * 2 + i) * 4, 0, Math.PI * 2)
+      ctx.strokeStyle = `rgba(21,101,192,${0.15 - i * 0.04})`
+      ctx.lineWidth = 2
       ctx.stroke()
     }
 
-    ctx.fillStyle = 'white'
-    ctx.font = 'bold 48px system-ui'
+    ctx.fillStyle = '#000000'
+    ctx.font = 'bold 48px var(--font)'
     ctx.textAlign = 'center'
     ctx.fillText(faro.phase === "inspira" ? "Inspira" : "Espira", cx, cy + 10)
     ctx.restore()
@@ -339,80 +335,82 @@ export class App {
     if (game.phase === "showing") {
       const item = game.getCurrentItem()
       if (item) {
-        ctx.fillStyle = 'white'
-        ctx.font = '100px system-ui'
+        ctx.fillStyle = '#000000'
+        ctx.font = '120px system-ui'
         ctx.textAlign = 'center'
         ctx.fillText(game.getItemIcon(item), w / 2, h / 2 + 30)
-        ctx.font = 'bold 36px system-ui'
-        ctx.fillText(item, w / 2, h / 2 + 130)
+        ctx.font = 'bold 48px system-ui'
+        ctx.fillStyle = '#1565c0'
+        ctx.fillText(item, w / 2, h / 2 + 150)
       }
     } else if (game.phase === "moving") {
       const elapsed = Math.min((Date.now() - game.movementTimer) / 8000, 1)
-      ctx.fillStyle = 'white'
-      ctx.font = 'bold 42px system-ui'
+      ctx.fillStyle = '#000000'
+      ctx.font = 'bold 48px system-ui'
       ctx.textAlign = 'center'
-      ctx.fillText("Cammina sul posto", w / 2, h / 2 - 50)
-      ctx.font = '48px system-ui'
+      ctx.fillText("Cammina sul posto", w / 2, h / 2 - 60)
+      ctx.font = '60px system-ui'
+      ctx.fillStyle = '#1565c0'
       ctx.fillText(`${Math.ceil(8 - elapsed * 8)}s`, w / 2, h / 2 + 20)
-      const cx = w / 2, cy = h / 2 + 60
+      const cx = w / 2, cy = h / 2 + 70
       ctx.beginPath()
-      ctx.arc(cx, cy, 40, 0, Math.PI * 2 * elapsed)
-      ctx.strokeStyle = '#64b4ff'
-      ctx.lineWidth = 4
+      ctx.arc(cx, cy, 50, 0, Math.PI * 2 * elapsed)
+      ctx.strokeStyle = '#1565c0'
+      ctx.lineWidth = 6
       ctx.stroke()
       ctx.beginPath()
-      ctx.arc(cx, cy, 40, 0, Math.PI * 2)
-      ctx.strokeStyle = 'rgba(100,180,255,0.2)'
-      ctx.lineWidth = 2
+      ctx.arc(cx, cy, 50, 0, Math.PI * 2)
+      ctx.strokeStyle = 'rgba(21,101,192,0.2)'
+      ctx.lineWidth = 3
       ctx.stroke()
     } else if (game.phase === "recall" || game.phase === "feedback") {
       const answerLen = game.userAnswer.length
-      const answerBoxesY = 40
-      const boxSize = 50
-      const totalBoxW = game.sequence.length * (boxSize + 8) - 8
+      const answerBoxesY = 50
+      const boxSize = 64
+      const totalBoxW = game.sequence.length * (boxSize + 12) - 12
       const boxStartX = (w - totalBoxW) / 2
       for (let i = 0; i < game.sequence.length; i++) {
-        const bx = boxStartX + i * (boxSize + 8)
+        const bx = boxStartX + i * (boxSize + 12)
         ctx.fillStyle = i < answerLen
-          ? (game.getItemResult(i) === 'correct' ? 'rgba(60,200,60,0.35)' : 'rgba(220,60,60,0.35)')
-          : 'rgba(255,255,255,0.08)'
+          ? (game.getItemResult(i) === 'correct' ? 'rgba(46,125,50,0.2)' : 'rgba(198,40,40,0.2)')
+          : 'rgba(0,0,0,0.05)'
         ctx.beginPath()
-        ctx.roundRect(bx, answerBoxesY, boxSize, boxSize, 8)
+        ctx.roundRect(bx, answerBoxesY, boxSize, boxSize, 10)
         ctx.fill()
         if (i < answerLen) {
-          const borderColor = game.getItemResult(i) === 'correct' ? '#3cc83c' : '#dc3c3c'
+          const borderColor = game.getItemResult(i) === 'correct' ? '#2e7d32' : '#c62828'
           ctx.strokeStyle = borderColor
-          ctx.lineWidth = 2
+          ctx.lineWidth = 3
           ctx.stroke()
-      ctx.fillStyle = 'white'
-      ctx.font = '32px system-ui'
+      ctx.fillStyle = '#000000'
+      ctx.font = '40px system-ui'
       ctx.textAlign = 'center'
-      ctx.fillText(game.getItemIcon(game.userAnswer[i]), bx + boxSize / 2, answerBoxesY + boxSize / 2 + 8)
+      ctx.fillText(game.getItemIcon(game.userAnswer[i]), bx + boxSize / 2, answerBoxesY + boxSize / 2 + 10)
         }
       }
 
       const opts = game.getOptions()
       const selectedSet = new Set(game.userAnswer)
       const cols = 4
-      const size = Math.min(80, (w - 80) / cols - 16)
-      const startX = (w - cols * (size + 16)) / 2
-      const startY = answerBoxesY + boxSize + 40
+      const size = Math.min(100, (w - 100) / cols - 20)
+      const startX = (w - cols * (size + 20)) / 2
+      const startY = answerBoxesY + boxSize + 50
       opts.forEach((opt, i) => {
         const col = i % cols, row = Math.floor(i / cols)
-        const x = startX + col * (size + 16)
-        const y = startY + row * (size + 16)
+        const x = startX + col * (size + 20)
+        const y = startY + row * (size + 20)
         const isUsed = selectedSet.has(opt) && !game.userAnswer.slice(answerLen - 1).includes(opt)
-        ctx.fillStyle = isUsed ? 'rgba(60,60,60,0.6)' : 'rgba(20,30,60,0.8)'
+        ctx.fillStyle = isUsed ? 'rgba(200,200,200,0.5)' : 'rgba(240,244,248,0.9)'
         ctx.beginPath()
-        ctx.roundRect(x, y, size, size, 12)
+        ctx.roundRect(x, y, size, size, 14)
         ctx.fill()
-        ctx.strokeStyle = isUsed ? 'rgba(100,100,100,0.3)' : 'rgba(100,180,255,0.4)'
-        ctx.lineWidth = 1
+        ctx.strokeStyle = isUsed ? 'rgba(0,0,0,0.15)' : 'rgba(21,101,192,0.4)'
+        ctx.lineWidth = 3
         ctx.stroke()
-        ctx.fillStyle = isUsed ? '#666' : 'white'
-        ctx.font = '32px system-ui'
+        ctx.fillStyle = isUsed ? '#999' : '#000000'
+        ctx.font = '40px system-ui'
         ctx.textAlign = 'center'
-        ctx.fillText(game.getItemIcon(opt), x + size / 2, y + size / 2 + 12)
+        ctx.fillText(game.getItemIcon(opt), x + size / 2, y + size / 2 + 14)
       })
     }
     ctx.restore()

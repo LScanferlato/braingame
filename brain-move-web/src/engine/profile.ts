@@ -6,6 +6,8 @@ export interface ProfileData {
   preferredMode: string
   webcam: { enabled: boolean; saveVideo: boolean; poseOnly: boolean }
   safety: { maxSessionMinutes: number; seatedFallback: boolean }
+  seniorMode: boolean
+  fontSizeMultiplier: number
 }
 
 const DEFAULT_PROFILE: ProfileData = {
@@ -16,6 +18,8 @@ const DEFAULT_PROFILE: ProfileData = {
   preferredMode: "standing_with_support",
   webcam: { enabled: true, saveVideo: false, poseOnly: true },
   safety: { maxSessionMinutes: 24, seatedFallback: true },
+  seniorMode: true,
+  fontSizeMultiplier: 1.0,
 }
 
 export class Profile {
@@ -40,5 +44,18 @@ export class Profile {
 
   set<T>(key: string, value: T): void {
     (this.data as unknown as Record<string, unknown>)[key] = value
+  }
+
+  get seniorMode(): boolean {
+    return this.data.seniorMode
+  }
+
+  set seniorMode(v: boolean) {
+    this.data.seniorMode = v
+    this.save()
+  }
+
+  get fontScale(): number {
+    return this.seniorMode ? 1.5 : this.data.fontSizeMultiplier
   }
 }
