@@ -9,6 +9,7 @@ import { MovementRules } from '../vision/movement-rules'
 import { FatigueDetector } from '../vision/fatigue-detector'
 import { FallRiskDetector } from '../vision/fall-risk'
 import { FacialExpressionDetector } from '../vision/facial-expression'
+import { VoiceGuide } from './voice-guide'
 import type { BaseGame } from '../games/base-game'
 import type { PoseData } from '../types'
 
@@ -33,6 +34,7 @@ export class App {
   private fallRiskDetector = new FallRiskDetector()
   private facialExpression = new FacialExpressionDetector()
 
+  private voice = new VoiceGuide()
   private state: "menu" | "playing" | "finished" | "report" = "menu"
   private menuView: "main" | "games" = "main"
   private sessionMode = false
@@ -325,9 +327,9 @@ export class App {
     }
 
     ctx.fillStyle = 'white'
-    ctx.font = 'bold 28px system-ui'
+    ctx.font = 'bold 48px system-ui'
     ctx.textAlign = 'center'
-    ctx.fillText(faro.phase === "inspira" ? "Inspira" : "Espira", cx, cy + 8)
+    ctx.fillText(faro.phase === "inspira" ? "Inspira" : "Espira", cx, cy + 10)
     ctx.restore()
   }
 
@@ -338,19 +340,19 @@ export class App {
       const item = game.getCurrentItem()
       if (item) {
         ctx.fillStyle = 'white'
-        ctx.font = '80px system-ui'
+        ctx.font = '100px system-ui'
         ctx.textAlign = 'center'
         ctx.fillText(game.getItemIcon(item), w / 2, h / 2 + 30)
-        ctx.font = 'bold 24px system-ui'
-        ctx.fillText(item, w / 2, h / 2 + 120)
+        ctx.font = 'bold 36px system-ui'
+        ctx.fillText(item, w / 2, h / 2 + 130)
       }
     } else if (game.phase === "moving") {
       const elapsed = Math.min((Date.now() - game.movementTimer) / 8000, 1)
       ctx.fillStyle = 'white'
-      ctx.font = 'bold 32px system-ui'
+      ctx.font = 'bold 42px system-ui'
       ctx.textAlign = 'center'
-      ctx.fillText("Cammina sul posto...", w / 2, h / 2 - 40)
-      ctx.font = '28px system-ui'
+      ctx.fillText("Cammina sul posto", w / 2, h / 2 - 50)
+      ctx.font = '48px system-ui'
       ctx.fillText(`${Math.ceil(8 - elapsed * 8)}s`, w / 2, h / 2 + 20)
       const cx = w / 2, cy = h / 2 + 60
       ctx.beginPath()
@@ -382,10 +384,10 @@ export class App {
           ctx.strokeStyle = borderColor
           ctx.lineWidth = 2
           ctx.stroke()
-          ctx.fillStyle = 'white'
-          ctx.font = '24px system-ui'
-          ctx.textAlign = 'center'
-          ctx.fillText(game.getItemIcon(game.userAnswer[i]), bx + boxSize / 2, answerBoxesY + boxSize / 2 + 8)
+      ctx.fillStyle = 'white'
+      ctx.font = '32px system-ui'
+      ctx.textAlign = 'center'
+      ctx.fillText(game.getItemIcon(game.userAnswer[i]), bx + boxSize / 2, answerBoxesY + boxSize / 2 + 8)
         }
       }
 
@@ -442,22 +444,22 @@ export class App {
       ctx.textBaseline = 'middle'
       ctx.fillText(arrow, w / 2, h / 2 - 30)
 
-      ctx.fillStyle = 'rgba(255,255,255,0.9)'
-      ctx.font = 'bold 22px system-ui'
+      ctx.fillStyle = 'white'
+      ctx.font = 'bold 36px system-ui'
       ctx.textBaseline = 'alphabetic'
-      ctx.fillText(color.label, w / 2, h / 2 + 80)
+      ctx.fillText(color.label, w / 2, h / 2 + 90)
 
       if (action === 'fermo') {
-        ctx.fillStyle = '#ff4444'
-        ctx.font = 'bold 36px system-ui'
+        ctx.fillStyle = '#ef5350'
+        ctx.font = 'bold 48px system-ui'
         ctx.textBaseline = 'alphabetic'
-        ctx.fillText('STOP', w / 2, h / 2 + 125)
+        ctx.fillText('STOP', w / 2, h / 2 + 140)
       }
 
       if (game.inhibitionMode) {
-        ctx.fillStyle = '#ff6b6b'
-        ctx.font = 'bold 20px system-ui'
-        ctx.fillText("REGOLA SPECIALE: Resta fermo!", w / 2, h / 2 + 165)
+        ctx.fillStyle = '#ffa726'
+        ctx.font = 'bold 28px system-ui'
+        ctx.fillText("ATTENZIONE: Resta fermo!", w / 2, h / 2 + 185)
       }
     }
     ctx.restore()
@@ -545,12 +547,12 @@ export class App {
         ctx.fill()
         if (game.isCardRevealed(idx) || game.isCardMatched(idx)) {
           ctx.fillStyle = 'white'
-          ctx.font = '30px system-ui'
+          ctx.font = `${Math.min(36, size - 4)}px system-ui`
           ctx.textAlign = 'center'
           ctx.fillText(game.getCardSymbol(idx), x + size / 2, y + size / 2 + 10)
         } else {
           ctx.fillStyle = 'rgba(100,180,255,0.3)'
-          ctx.font = '24px system-ui'
+          ctx.font = `${Math.min(30, size - 4)}px system-ui`
           ctx.textAlign = 'center'
           ctx.fillText('?', x + size / 2, y + size / 2 + 8)
         }
@@ -566,7 +568,7 @@ export class App {
       const item = game.getCurrentShowItem()
       if (item) {
         ctx.fillStyle = 'white'
-        ctx.font = '80px system-ui'
+        ctx.font = '100px system-ui'
         ctx.textAlign = 'center'
         ctx.fillText(item, w / 2, h / 2 + 30)
       }
@@ -620,9 +622,9 @@ export class App {
       ctx.stroke()
     }
     ctx.fillStyle = 'white'
-    ctx.font = '24px system-ui'
+    ctx.font = 'bold 36px system-ui'
     ctx.textAlign = 'center'
-    ctx.fillText(`Mano: ${game.throwHand === 'right' ? 'DESTRA' : 'SINISTRA'}`, w / 2, 40)
+    ctx.fillText(`Mano: ${game.throwHand === 'right' ? 'DESTRA' : 'SINISTRA'}`, w / 2, 50)
     ctx.restore()
   }
 
@@ -650,7 +652,7 @@ export class App {
         ctx.lineWidth = game.isSelected(r, c) ? 2 : 1
         ctx.stroke()
         ctx.fillStyle = 'white'
-        ctx.font = '28px system-ui'
+        ctx.font = `${Math.min(36, size - 8)}px system-ui`
         ctx.textAlign = 'center'
         ctx.fillText(game.currentGrid[r]?.[c] ?? '', x + size / 2, y + size / 2 + 10)
       }
@@ -665,18 +667,18 @@ export class App {
       ctx.fillStyle = 'white'
       ctx.font = 'bold 28px system-ui'
       ctx.textAlign = 'center'
-      ctx.fillText("Preparati a memorizzare le immagini!", w / 2, h / 2 - 40)
-      ctx.font = '20px system-ui'
-      ctx.fillStyle = 'var(--accent,#64b4ff)'
-      ctx.fillText("Tra poco tutte le carte saranno visibili", w / 2, h / 2 + 10)
+      ctx.fillText("Preparati a memorizzare le immagini", w / 2, h / 2 - 40)
+      ctx.font = '28px system-ui'
+      ctx.fillStyle = '#4fc3f7'
+      ctx.fillText("Tra poco tutte le carte saranno visibili", w / 2, h / 2 + 20)
       ctx.restore()
       return
     }
     if (game.phase === "study") {
       const elapsed = Math.min((Date.now() - game.studyTimer) / 1000, game.studyDuration)
       const remaining = Math.ceil(game.studyDuration - elapsed)
-      ctx.fillStyle = 'rgba(100,180,255,0.8)'
-      ctx.font = 'bold 22px system-ui'
+      ctx.fillStyle = '#4fc3f7'
+      ctx.font = 'bold 36px system-ui'
       ctx.textAlign = 'center'
       ctx.fillText(`Memorizza... ${remaining}s`, w / 2, 40)
     }
@@ -728,9 +730,9 @@ export class App {
     const q = game.getCurrentQuestion()
     if (!q || game.phase !== "playing") return
     ctx.fillStyle = 'white'
-    ctx.font = 'bold 28px system-ui'
+    ctx.font = 'bold 36px system-ui'
     ctx.textAlign = 'center'
-    ctx.fillText(q.text as string, w / 2, h / 2 - 80)
+    ctx.fillText(q.text as string, w / 2, h / 2 - 100)
     if (q.type === "count" && q.symbols) {
       const symbols = q.symbols as string[]
       const sChar = q.symbolChar as string
@@ -791,9 +793,9 @@ export class App {
       ctx.fill()
       ctx.shadowBlur = 0
       ctx.fillStyle = 'white'
-      ctx.font = 'bold 20px system-ui'
+      ctx.font = 'bold 28px system-ui'
       ctx.textAlign = 'center'
-      ctx.fillText(note.label, x, y + 7)
+      ctx.fillText(note.label, x, y + 9)
     })
     ctx.restore()
   }
@@ -825,7 +827,7 @@ export class App {
           ctx.stroke()
         }
         ctx.fillStyle = game.isFound(r, c) ? '#80d880' : '#eee'
-        ctx.font = `${Math.max(12, cellSize - 10)}px system-ui`
+        ctx.font = `${Math.max(16, cellSize - 10)}px system-ui`
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
         ctx.fillText(game.grid[r][c], x + cellSize / 2, y + cellSize / 2)
@@ -879,7 +881,7 @@ export class App {
         } else if (hasLetter) {
           ctx.fillStyle = 'rgba(255,255,255,0.15)'
         }
-        ctx.font = `${Math.max(12, cellSize - 12)}px system-ui`
+        ctx.font = `${Math.max(16, cellSize - 12)}px system-ui`
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
         if (filled) {
@@ -901,10 +903,10 @@ export class App {
       ctx.font = 'bold 30px system-ui'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      ctx.fillText("Scoppia i palloncini!", w / 2, h / 2 - 30)
-      ctx.fillStyle = '#64b4ff'
-      ctx.font = '20px system-ui'
-      ctx.fillText("Clicca sui palloncini per scoppiarli", w / 2, h / 2 + 15)
+      ctx.fillText("Scoppia i palloncini!", w / 2, h / 2 - 40)
+      ctx.fillStyle = '#4fc3f7'
+      ctx.font = '28px system-ui'
+      ctx.fillText("Clicca sopra i palloncini per scoppiarli", w / 2, h / 2 + 20)
       ctx.restore()
       return
     }
@@ -988,53 +990,131 @@ export class App {
     this.state = "menu"
     this.currentGame = null
     this.overlay.innerHTML = ''
-    const h = this.container.clientHeight
 
-    const header = document.createElement('div')
-    header.className = 'menu-header'
-    header.innerHTML = `<div class="logo-icon">\u{1F9E0}</div>
-      <h1>Brain-Move</h1>
-      <p>Piattaforma di stimolazione cognitiva e motoria</p>`
-    this.overlay.appendChild(header)
+    const screen = document.createElement('div')
+    screen.className = 'menu-screen'
 
-    const grid = document.createElement('div')
-    grid.className = 'game-grid'
+    const logo = document.createElement('div')
+    logo.className = 'menu-logo'
+    logo.textContent = '\u{1F9E0}'
+    screen.appendChild(logo)
+
+    const title = document.createElement('div')
+    title.className = 'menu-title'
+    title.textContent = 'Brain-Move'
+    screen.appendChild(title)
+
+    const subtitle = document.createElement('div')
+    subtitle.className = 'menu-subtitle'
+    subtitle.textContent = 'Esercizi per la mente e il movimento'
+    screen.appendChild(subtitle)
+
+    const choices = document.createElement('div')
+    choices.className = 'menu-choices'
+    choices.setAttribute('role', 'menu')
+    choices.setAttribute('aria-label', 'Scegli un\'attività')
+
+    const gamesBtn = document.createElement('button')
+    gamesBtn.className = 'menu-choice'
+    gamesBtn.setAttribute('role', 'menuitem')
+    gamesBtn.setAttribute('aria-label', 'Giochi di allenamento mentale')
+    gamesBtn.innerHTML = '<span class="menu-choice-icon">\u{1F3AE}</span> Giochi'
+    gamesBtn.addEventListener('click', () => this._showGameChoices())
+    choices.appendChild(gamesBtn)
+
+    const breathBtn = document.createElement('button')
+    breathBtn.className = 'menu-choice'
+    breathBtn.setAttribute('role', 'menuitem')
+    breathBtn.setAttribute('aria-label', 'Esercizio di respirazione')
+    breathBtn.innerHTML = '<span class="menu-choice-icon">\u{1F4A1}</span> Respiro'
+    breathBtn.addEventListener('click', () => {
+      const idx = this.games.findIndex(g => g.name === 'respiro_faro')
+      if (idx >= 0) this._startGame(idx)
+    })
+    choices.appendChild(breathBtn)
+
+    const reportBtn = document.createElement('button')
+    reportBtn.className = 'menu-choice'
+    reportBtn.setAttribute('role', 'menuitem')
+    reportBtn.setAttribute('aria-label', 'Guarda i risultati')
+    reportBtn.innerHTML = '<span class="menu-choice-icon">\u{1F4CA}</span> Risultati'
+    reportBtn.addEventListener('click', () => this._showReport())
+    choices.appendChild(reportBtn)
+
+    screen.appendChild(choices)
+    this.overlay.appendChild(screen)
+
+    this.voice.startAutoRepeat(
+      'Benvenuto in Brain-Move. Scegli Giochi per allenare la mente, Respiro per rilassarti, oppure Risultati per vedere i tuoi progressi.',
+      20000
+    )
+  }
+
+  private _showGameChoices(): void {
+    this.overlay.innerHTML = ''
+
+    const screen = document.createElement('div')
+    screen.className = 'menu-screen'
+
+    const backBtn = document.createElement('button')
+    backBtn.className = 'menu-back-btn'
+    backBtn.innerHTML = '\u{2190} Indietro'
+    backBtn.addEventListener('click', () => this._renderMenu())
+    screen.appendChild(backBtn)
+
+    const title = document.createElement('div')
+    title.className = 'menu-title'
+    title.textContent = 'Giochi'
+    screen.appendChild(title)
+
+    const subtitle = document.createElement('div')
+    subtitle.className = 'menu-subtitle'
+    subtitle.textContent = 'Scegli un gioco da fare'
+    screen.appendChild(subtitle)
+
+    const choices = document.createElement('div')
+    choices.className = 'menu-choices'
 
     GAME_MENU_DATA.forEach((g, i) => {
       if (g.name === 'valutazione') return
-      const card = document.createElement('div')
-      card.className = 'game-card'
-      card.innerHTML = `
-        <div class="card-icon">${g.icon}</div>
-        <div class="card-title">${g.displayName}</div>
-        <div class="card-desc">${g.description}</div>
-        <div class="card-cog">${g.cognitive}</div>`
-      card.addEventListener('click', () => this._startGame(i))
-      grid.appendChild(card)
+      const btn = document.createElement('button')
+      btn.className = 'menu-choice'
+      btn.innerHTML = `<span class="menu-choice-icon">${g.icon}</span> ${g.displayName}`
+      btn.addEventListener('click', () => this._startGame(i))
+      choices.appendChild(btn)
     })
-    this.overlay.appendChild(grid)
-
-    const bottomRow = document.createElement('div')
-    bottomRow.className = 'bottom-actions'
 
     const sessionBtn = document.createElement('button')
-    sessionBtn.className = 'btn btn-primary btn-session'
-    sessionBtn.textContent = 'Sessione Completa (6 giochi)'
+    sessionBtn.className = 'menu-choice'
+    sessionBtn.innerHTML = '<span class="menu-choice-icon">\u{1F504}</span> Sessione completa'
     sessionBtn.addEventListener('click', () => this._startSession())
-    bottomRow.appendChild(sessionBtn)
+    choices.appendChild(sessionBtn)
 
-    const reportBtn = document.createElement('button')
-    reportBtn.className = 'btn btn-secondary'
-    reportBtn.textContent = 'Report Sessioni'
-    reportBtn.addEventListener('click', () => this._showReport())
-    bottomRow.appendChild(reportBtn)
+    screen.appendChild(choices)
+    this.overlay.appendChild(screen)
 
-    this.overlay.appendChild(bottomRow)
+    this.voice.startAutoRepeat(
+      'Scegli un gioco da fare. Oppure fai una sessione completa con più giochi in sequenza.',
+      20000
+    )
+  }
 
-    const scoreBadge = document.createElement('div')
-    scoreBadge.className = 'score-badge'
-    scoreBadge.textContent = `Punti: ${this.scoring.getTotal()}`
-    this.overlay.appendChild(scoreBadge)
+  private _addVoiceBar(instruction: string): void {
+    const existing = this.overlay.querySelector('.voice-bar')
+    if (existing) existing.remove()
+
+    const bar = document.createElement('div')
+    bar.className = 'voice-bar'
+
+    const repeatBtn = document.createElement('button')
+    repeatBtn.className = 'voice-btn'
+    repeatBtn.setAttribute('aria-label', 'Ripeti istruzioni')
+    repeatBtn.innerHTML = '<span class="voice-btn-icon">\u{1F50A}</span> Ripeti'
+    repeatBtn.addEventListener('click', () => this.voice.speak(instruction, true))
+    bar.appendChild(repeatBtn)
+
+    this.overlay.appendChild(bar)
+    this.voice.startAutoRepeat(instruction, 15000)
   }
 
   private _startGame(index: number): void {
@@ -1113,6 +1193,29 @@ export class App {
     else if (g.name === 'cerca_parole') this._renderCercaParoleUI(gameArea)
 
     this.overlay.appendChild(gameArea)
+
+    const gameName = g.displayName
+    const voiceInstructions: Record<string, string> = {
+      'Respiro del Faro': 'Segui il cerchio che si allarga e si restringe. Inspira quando si allarga, espira quando si restringe.',
+      'Passi e Ricorda': 'Guarda la sequenza di immagini. Poi cammina sul posto per qualche secondo. Infine scegli le immagini nell\'ordine giusto.',
+      'Semaforo Esecutivo': 'Guarda il colore e la freccia. Fai il movimento mostrato. Se vedi la regola speciale, resta fermo.',
+      'Mappa della Stanza': 'Ricorda dove sono gli oggetti nella stanza. Poi mettili al posto giusto.',
+      'Costruisci il Modello': 'Guarda il modello da costruire. Poi usa i pezzi per ricrearlo.',
+      'Diario delle Missioni': 'Rispondi alle domande sul tuo umore e sulle tue attività.',
+      'Memory Carte': 'Ricorda dove sono le carte. Trova le coppie uguali.',
+      'Sequenza Simboli': 'Guarda la sequenza di simboli. Poi ripetila nello stesso ordine.',
+      'Parole Incrociate': 'Clicca sulla parola da completare. Scrivi le lettere una per una. Poi premi Verifica.',
+      'Basket': 'Lancia la palla nel canestro. Premi il pulsante per lanciare.',
+      'Puzzle': 'Scambia due tessere per ricreare l\'immagine originale. Clicca una tessera, poi clicca dove spostarla.',
+      'Memory Immagini': 'Memorizza le immagini. Poi trova le coppie uguali.',
+      'Brain Trainer': 'Rispondi alle domande di matematica, memoria e attenzione.',
+      'Musical Memory': 'Ascolta la sequenza di note. Poi ripetila premendo i pulsanti.',
+      'Palloncini': 'Scoppia i palloncini cliccandoli sopra prima che scappino via.',
+      'Quiz': 'Rispondi alle domande scegliendo la risposta giusta.',
+      'Cerca Parole': 'Trova le parole nascoste nella griglia. Clicca la prima lettera, poi clicca l\'ultima.',
+    }
+    const instruction = voiceInstructions[g.displayName] || `Gioca a ${g.displayName}`
+    this._addVoiceBar(instruction)
 
     document.getElementById('btn-back')?.addEventListener('click', () => this._backToMenu())
   }
@@ -1636,6 +1739,10 @@ export class App {
     container.className = 'cerca-parole-container'
     const render = () => {
       container.innerHTML = ''
+      const instr = document.createElement('div')
+      instr.className = 'game-instruction'
+      instr.textContent = `Trova ${game.totalWords} parole nascoste (clic primo e ultima lettera)`
+      container.appendChild(instr)
       const wordsDiv = document.createElement('div')
       wordsDiv.className = 'cerca-parole-words'
       game.words.forEach(w => {
@@ -1648,7 +1755,7 @@ export class App {
       const grid = document.createElement('div')
       grid.className = 'cerca-parole-grid'
       const gs = game.getGridSize()
-      grid.style.gridTemplateColumns = `repeat(${gs}, 36px)`
+      grid.style.gridTemplateColumns = `repeat(${gs}, 56px)`
       for (let r = 0; r < gs; r++) {
         for (let c = 0; c < gs; c++) {
           const cell = document.createElement('div')
@@ -1753,6 +1860,7 @@ export class App {
       this.canvas.removeEventListener('click', this.pallonciniHandler)
       this.pallonciniHandler = null
     }
+    this.voice.stop()
     this.currentGame = null
     this.gameIndex = -1
     this.sessionMode = false
@@ -1762,5 +1870,6 @@ export class App {
   destroy(): void {
     cancelAnimationFrame(this.animFrameId)
     this.poseDetector.stop()
+    this.voice.destroy()
   }
 }
