@@ -421,43 +421,43 @@ export class App {
     ctx.save()
     const color = game.getColorDisplay()
     if (color) {
-      const colorMap: Record<string, string> = { rosso: '#e63c3c', giallo: '#e6d232', verde: '#3cc83c', blu: '#3282e6' }
+      const colorMap: Record<string, string> = { rosso: '#c62828', giallo: '#f9a825', verde: '#2e7d32', blu: '#1565c0' }
       const arrowMap: Record<string, string> = { passo_avanti: '\u2191', fermo: '\u270B', passo_sinistra: '\u2190', passo_destra: '\u2192' }
       const col = game.getCurrentColor() ?? ''
       const action = color.action
       const arrow = arrowMap[action] ?? '?'
 
       ctx.beginPath()
-      ctx.arc(w / 2, h / 2 - 30, 90, 0, Math.PI * 2)
+      ctx.arc(w / 2, h / 2 - 40, 110, 0, Math.PI * 2)
       ctx.fillStyle = colorMap[col] ?? '#555'
       ctx.fill()
       ctx.shadowColor = colorMap[col] ?? '#555'
-      ctx.shadowBlur = 40
+      ctx.shadowBlur = 50
       ctx.fill()
       ctx.shadowBlur = 0
 
-      ctx.fillStyle = 'white'
-      ctx.font = '64px system-ui'
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '80px system-ui'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      ctx.fillText(arrow, w / 2, h / 2 - 30)
+      ctx.fillText(arrow, w / 2, h / 2 - 40)
 
-      ctx.fillStyle = 'white'
-      ctx.font = 'bold 36px system-ui'
+      ctx.fillStyle = '#000000'
+      ctx.font = 'bold 48px system-ui'
       ctx.textBaseline = 'alphabetic'
-      ctx.fillText(color.label, w / 2, h / 2 + 90)
+      ctx.fillText(color.label, w / 2, h / 2 + 100)
 
       if (action === 'fermo') {
-        ctx.fillStyle = '#ef5350'
-        ctx.font = 'bold 48px system-ui'
+        ctx.fillStyle = '#c62828'
+        ctx.font = 'bold 56px system-ui'
         ctx.textBaseline = 'alphabetic'
-        ctx.fillText('STOP', w / 2, h / 2 + 140)
+        ctx.fillText('FERMO!', w / 2, h / 2 + 160)
       }
 
       if (game.inhibitionMode) {
-        ctx.fillStyle = '#ffa726'
-        ctx.font = 'bold 28px system-ui'
-        ctx.fillText("ATTENZIONE: Resta fermo!", w / 2, h / 2 + 185)
+        ctx.fillStyle = '#e65100'
+        ctx.font = 'bold 36px system-ui'
+        ctx.fillText("ATENZIONE: Resta fermo!", w / 2, h / 2 + 210)
       }
     }
     ctx.restore()
@@ -467,26 +467,26 @@ export class App {
     const game = this.currentGame as import('../games/mappa-stanza').MappaStanza
     ctx.save()
     const gs = game.gridSize
-    const cellSize = Math.min(80, (w - 100) / gs)
+    const cellSize = Math.min(100, (w - 120) / gs)
     const startX = (w - gs * cellSize) / 2
     const startY = (h - gs * cellSize) / 2
     for (let r = 0; r < gs; r++) {
       for (let c = 0; c < gs; c++) {
         const x = startX + c * cellSize, y = startY + r * cellSize
-        ctx.fillStyle = 'rgba(20,30,60,0.7)'
+        ctx.fillStyle = 'rgba(240,244,248,0.9)'
         ctx.beginPath()
-        ctx.roundRect(x, y, cellSize - 4, cellSize - 4, 8)
+        ctx.roundRect(x, y, cellSize - 6, cellSize - 6, 12)
         ctx.fill()
-        ctx.strokeStyle = 'rgba(100,180,255,0.2)'
-        ctx.lineWidth = 1
+        ctx.strokeStyle = 'rgba(21,101,192,0.2)'
+        ctx.lineWidth = 2
         ctx.stroke()
         if (game.phase === "showing") {
           for (const [obj, pos] of Object.entries(game.objectPositions)) {
             if (pos[0] === r && pos[1] === c) {
-              ctx.fillStyle = 'white'
-              ctx.font = '28px system-ui'
+              ctx.fillStyle = '#000000'
+              ctx.font = '40px system-ui'
               ctx.textAlign = 'center'
-              ctx.fillText(game.getObjectIcon(obj), x + cellSize / 2, y + cellSize / 2 + 10)
+              ctx.fillText(game.getObjectIcon(obj), x + cellSize / 2, y + cellSize / 2 + 12)
             }
           }
         }
@@ -500,23 +500,23 @@ export class App {
     ctx.save()
     if (game.phase === "showing") {
       const preview = game.getModelPreview()
-      const size = Math.min(70, (w - 80) / Math.max(preview.length, 1) - 16)
-      const startX = (w - preview.length * (size + 16)) / 2
+      const size = Math.min(90, (w - 100) / Math.max(preview.length, 1) - 20)
+      const startX = (w - preview.length * (size + 20)) / 2
       preview.forEach((piece, i) => {
         const info = game.getShapeInfo(piece)
         if (!info) return
-        const x = startX + i * (size + 16), y = h / 2 - size / 2
+        const x = startX + i * (size + 20), y = h / 2 - size / 2
         ctx.fillStyle = info.color + '40'
         ctx.beginPath()
-        ctx.roundRect(x, y, size, size, 10)
+        ctx.roundRect(x, y, size, size, 12)
         ctx.fill()
         ctx.strokeStyle = info.color
-        ctx.lineWidth = 2
+        ctx.lineWidth = 3
         ctx.stroke()
-        ctx.fillStyle = 'white'
-        ctx.font = '14px system-ui'
+        ctx.fillStyle = '#000000'
+        ctx.font = 'bold 30px system-ui'
         ctx.textAlign = 'center'
-        ctx.fillText(info.label, x + size / 2, y + size + 24)
+        ctx.fillText(info.label, x + size / 2, y + size + 36)
       })
     }
     ctx.restore()
@@ -526,33 +526,38 @@ export class App {
     const game = this.currentGame as import('../games/memory-carte').MemoryCarte
     ctx.save()
     const [rows, cols] = game.getGridSize()
-    const size = Math.min(70, (w - 80) / cols - 8)
-    const startX = (w - cols * (size + 8)) / 2
-    const startY = (h - rows * (size + 8)) / 2
+    const size = Math.min(90, (w - 100) / cols - 12)
+    const startX = (w - cols * (size + 12)) / 2
+    const startY = (h - rows * (size + 12)) / 2
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const idx = r * cols + c
-        const x = startX + c * (size + 8), y = startY + r * (size + 8)
+        const x = startX + c * (size + 12), y = startY + r * (size + 12)
         if (game.isCardMatched(idx)) {
-          ctx.fillStyle = 'rgba(60,200,60,0.2)'
+          ctx.fillStyle = 'rgba(46,125,50,0.15)'
         } else if (game.isCardRevealed(idx)) {
-          ctx.fillStyle = 'rgba(40,60,100,0.9)'
+          ctx.fillStyle = '#ffffff'
         } else {
-          ctx.fillStyle = 'rgba(20,30,60,0.8)'
+          ctx.fillStyle = 'rgba(240,244,248,0.9)'
         }
         ctx.beginPath()
-        ctx.roundRect(x, y, size, size, 8)
+        ctx.roundRect(x, y, size, size, 12)
         ctx.fill()
         if (game.isCardRevealed(idx) || game.isCardMatched(idx)) {
-          ctx.fillStyle = 'white'
-          ctx.font = `${Math.min(36, size - 4)}px system-ui`
+          ctx.fillStyle = '#000000'
+          ctx.font = `${Math.min(44, size - 6)}px system-ui`
           ctx.textAlign = 'center'
-          ctx.fillText(game.getCardSymbol(idx), x + size / 2, y + size / 2 + 10)
+          ctx.fillText(game.getCardSymbol(idx), x + size / 2, y + size / 2 + 12)
         } else {
-          ctx.fillStyle = 'rgba(100,180,255,0.3)'
-          ctx.font = `${Math.min(30, size - 4)}px system-ui`
+          ctx.fillStyle = 'rgba(21,101,192,0.3)'
+          ctx.font = `${Math.min(36, size - 6)}px system-ui`
           ctx.textAlign = 'center'
-          ctx.fillText('?', x + size / 2, y + size / 2 + 8)
+          ctx.fillText('?', x + size / 2, y + size / 2 + 10)
+        }
+        if (game.isCardMatched(idx)) {
+          ctx.strokeStyle = '#2e7d32'
+          ctx.lineWidth = 3
+          ctx.stroke()
         }
       }
     }
@@ -565,25 +570,28 @@ export class App {
     if (game.phase === "showing") {
       const item = game.getCurrentShowItem()
       if (item) {
-        ctx.fillStyle = 'white'
-        ctx.font = '100px system-ui'
+        ctx.fillStyle = '#000000'
+        ctx.font = '120px system-ui'
         ctx.textAlign = 'center'
         ctx.fillText(item, w / 2, h / 2 + 30)
       }
     } else {
       const symbols = game.getAvailableSymbols()
-      const size = Math.min(70, (w - 80) / Math.max(symbols.length, 1) - 16)
-      const startX = (w - symbols.length * (size + 16)) / 2
+      const size = Math.min(90, (w - 100) / Math.max(symbols.length, 1) - 20)
+      const startX = (w - symbols.length * (size + 20)) / 2
       symbols.forEach(([, icon], i) => {
-        const x = startX + i * (size + 16), y = h / 2 - size / 2
-        ctx.fillStyle = 'rgba(20,30,60,0.8)'
+        const x = startX + i * (size + 20), y = h / 2 - size / 2
+        ctx.fillStyle = 'rgba(240,244,248,0.9)'
         ctx.beginPath()
-        ctx.roundRect(x, y, size, size, 12)
+        ctx.roundRect(x, y, size, size, 14)
         ctx.fill()
-        ctx.fillStyle = 'white'
-        ctx.font = '32px system-ui'
+        ctx.strokeStyle = 'rgba(21,101,192,0.3)'
+        ctx.lineWidth = 2
+        ctx.stroke()
+        ctx.fillStyle = '#000000'
+        ctx.font = '44px system-ui'
         ctx.textAlign = 'center'
-        ctx.fillText(icon, x + size / 2, y + size / 2 + 12)
+        ctx.fillText(icon, x + size / 2, y + size / 2 + 14)
       })
     }
     ctx.restore()
@@ -594,12 +602,12 @@ export class App {
     ctx.save()
     const [hx, hy, hr] = game.getHoopPos()
     const hoopX = hx * w, hoopY = hy * h
-    ctx.strokeStyle = '#ff6b35'
-    ctx.lineWidth = 4
+    ctx.strokeStyle = '#e65100'
+    ctx.lineWidth = 6
     ctx.beginPath()
-    ctx.ellipse(hoopX, hoopY, hr + 10, hr / 2, 0, 0, Math.PI * 2)
+    ctx.ellipse(hoopX, hoopY, hr + 14, hr / 2 + 4, 0, 0, Math.PI * 2)
     ctx.stroke()
-    ctx.fillStyle = 'rgba(255,107,53,0.1)'
+    ctx.fillStyle = 'rgba(230,81,0,0.08)'
     ctx.fill()
     const ballPos = game.getBallPos()
     if (ballPos) {
@@ -607,22 +615,22 @@ export class App {
       trail.forEach((p, i) => {
         const alpha = i / trail.length
         ctx.beginPath()
-        ctx.arc(p[0], p[1], 5 + alpha * 5, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(255,150,50,${alpha * 0.5})`
+        ctx.arc(p[0], p[1], 8 + alpha * 6, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255,150,50,${alpha * 0.4})`
         ctx.fill()
       })
       ctx.beginPath()
-      ctx.arc(ballPos[0], ballPos[1], 18, 0, Math.PI * 2)
+      ctx.arc(ballPos[0], ballPos[1], 24, 0, Math.PI * 2)
       ctx.fillStyle = '#ff9632'
       ctx.fill()
       ctx.strokeStyle = '#cc6a1a'
-      ctx.lineWidth = 2
+      ctx.lineWidth = 3
       ctx.stroke()
     }
-    ctx.fillStyle = 'white'
-    ctx.font = 'bold 36px system-ui'
+    ctx.fillStyle = '#000000'
+    ctx.font = 'bold 44px system-ui'
     ctx.textAlign = 'center'
-    ctx.fillText(`Mano: ${game.throwHand === 'right' ? 'DESTRA' : 'SINISTRA'}`, w / 2, 50)
+    ctx.fillText(`Mano: ${game.throwHand === 'right' ? 'DESTRA' : 'SINISTRA'}`, w / 2, 60)
     ctx.restore()
   }
 
@@ -630,29 +638,29 @@ export class App {
     const game = this.currentGame as import('../games/puzzle').Puzzle
     ctx.save()
     const gs = game.gridSize
-    const size = Math.min(70, (w - 80) / gs)
+    const size = Math.min(90, (w - 100) / gs)
     const startX = (w - gs * size) / 2
     const startY = (h - gs * size) / 2
     for (let r = 0; r < gs; r++) {
       for (let c = 0; c < gs; c++) {
         const x = startX + c * size, y = startY + r * size
         if (game.isSelected(r, c)) {
-          ctx.fillStyle = 'rgba(100,180,255,0.3)'
+          ctx.fillStyle = 'rgba(21,101,192,0.2)'
         } else if (game.currentGrid[r]?.[c] === game.targetGrid[r]?.[c]) {
-          ctx.fillStyle = 'rgba(60,200,60,0.15)'
+          ctx.fillStyle = 'rgba(46,125,50,0.12)'
         } else {
-          ctx.fillStyle = 'rgba(20,30,60,0.8)'
+          ctx.fillStyle = 'rgba(240,244,248,0.9)'
         }
         ctx.beginPath()
-        ctx.roundRect(x, y, size - 4, size - 4, 8)
+        ctx.roundRect(x, y, size - 6, size - 6, 12)
         ctx.fill()
-        ctx.strokeStyle = game.isSelected(r, c) ? 'rgba(100,180,255,0.6)' : 'rgba(100,180,255,0.15)'
-        ctx.lineWidth = game.isSelected(r, c) ? 2 : 1
+        ctx.strokeStyle = game.isSelected(r, c) ? 'rgba(21,101,192,0.6)' : 'rgba(21,101,192,0.15)'
+        ctx.lineWidth = game.isSelected(r, c) ? 3 : 2
         ctx.stroke()
-        ctx.fillStyle = 'white'
-        ctx.font = `${Math.min(36, size - 8)}px system-ui`
+        ctx.fillStyle = '#000000'
+        ctx.font = `${Math.min(44, size - 10)}px system-ui`
         ctx.textAlign = 'center'
-        ctx.fillText(game.currentGrid[r]?.[c] ?? '', x + size / 2, y + size / 2 + 10)
+        ctx.fillText(game.currentGrid[r]?.[c] ?? '', x + size / 2, y + size / 2 + 14)
       }
     }
     ctx.restore()
@@ -662,60 +670,60 @@ export class App {
     const game = this.currentGame as import('../games/memory-immagini').MemoryImmagini
     ctx.save()
     if (game.phase === "instruction") {
-      ctx.fillStyle = 'white'
-      ctx.font = 'bold 28px system-ui'
+      ctx.fillStyle = '#000000'
+      ctx.font = 'bold 36px system-ui'
       ctx.textAlign = 'center'
-      ctx.fillText("Preparati a memorizzare le immagini", w / 2, h / 2 - 40)
-      ctx.font = '28px system-ui'
-      ctx.fillStyle = '#4fc3f7'
-      ctx.fillText("Tra poco tutte le carte saranno visibili", w / 2, h / 2 + 20)
+      ctx.fillText("Memorizza le immagini", w / 2, h / 2 - 50)
+      ctx.font = '30px system-ui'
+      ctx.fillStyle = '#1565c0'
+      ctx.fillText("Fra poco le carte saranno visibili", w / 2, h / 2 + 20)
       ctx.restore()
       return
     }
     if (game.phase === "study") {
       const elapsed = Math.min((Date.now() - game.studyTimer) / 1000, game.studyDuration)
       const remaining = Math.ceil(game.studyDuration - elapsed)
-      ctx.fillStyle = '#4fc3f7'
-      ctx.font = 'bold 36px system-ui'
+      ctx.fillStyle = '#1565c0'
+      ctx.font = 'bold 44px system-ui'
       ctx.textAlign = 'center'
-      ctx.fillText(`Memorizza... ${remaining}s`, w / 2, 40)
+      ctx.fillText(`Memorizza... ${remaining}s`, w / 2, 50)
     }
     const [rows, cols] = game.getGridSize()
-    const size = Math.min(64, (w - 60) / cols - 6)
-    const startX = (w - cols * (size + 6)) / 2
-    const startY = Math.max(game.phase === "study" ? 60 : 20, (h - rows * (size + 6)) / 2)
+    const size = Math.min(80, (w - 80) / cols - 8)
+    const startX = (w - cols * (size + 8)) / 2
+    const startY = Math.max(game.phase === "study" ? 80 : 30, (h - rows * (size + 8)) / 2)
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const idx = r * cols + c
-        const x = startX + c * (size + 6), y = startY + r * (size + 6)
+        const x = startX + c * (size + 8), y = startY + r * (size + 8)
         const wrong = game.isCardWrong(idx)
         if (game.isCardMatched(idx)) {
-          ctx.fillStyle = 'rgba(60,200,60,0.25)'
+          ctx.fillStyle = 'rgba(46,125,50,0.15)'
         } else if (wrong) {
-          ctx.fillStyle = 'rgba(220,60,60,0.35)'
+          ctx.fillStyle = 'rgba(198,40,40,0.2)'
         } else if (game.isCardRevealed(idx)) {
-          ctx.fillStyle = 'rgba(40,60,100,0.9)'
+          ctx.fillStyle = '#ffffff'
         } else {
-          ctx.fillStyle = 'rgba(20,30,60,0.8)'
+          ctx.fillStyle = 'rgba(240,244,248,0.9)'
         }
         ctx.beginPath()
-        ctx.roundRect(x, y, size, size, 8)
+        ctx.roundRect(x, y, size, size, 12)
         ctx.fill()
         if (wrong) {
-          ctx.strokeStyle = '#ff4444'
-          ctx.lineWidth = 2
+          ctx.strokeStyle = '#c62828'
+          ctx.lineWidth = 3
           ctx.stroke()
         }
         if (game.isCardRevealed(idx) || game.isCardMatched(idx)) {
-          ctx.fillStyle = 'white'
-          ctx.font = `${Math.min(28, size - 8)}px system-ui`
+          ctx.fillStyle = '#000000'
+          ctx.font = `${Math.min(36, size - 8)}px system-ui`
           ctx.textAlign = 'center'
-          ctx.fillText(game.getCardIcon(idx), x + size / 2, y + size / 2 + 8)
+          ctx.fillText(game.getCardIcon(idx), x + size / 2, y + size / 2 + 10)
         } else {
-          ctx.fillStyle = 'rgba(100,180,255,0.3)'
-          ctx.font = `${Math.min(22, size - 8)}px system-ui`
+          ctx.fillStyle = 'rgba(21,101,192,0.3)'
+          ctx.font = `${Math.min(30, size - 8)}px system-ui`
           ctx.textAlign = 'center'
-          ctx.fillText('?', x + size / 2, y + size / 2 + 6)
+          ctx.fillText('?', x + size / 2, y + size / 2 + 8)
         }
       }
     }
@@ -727,36 +735,37 @@ export class App {
     ctx.save()
     const q = game.getCurrentQuestion()
     if (!q || game.phase !== "playing") return
-    ctx.fillStyle = 'white'
-    ctx.font = 'bold 36px system-ui'
+    ctx.fillStyle = '#000000'
+    ctx.font = 'bold 44px system-ui'
     ctx.textAlign = 'center'
-    ctx.fillText(q.text as string, w / 2, h / 2 - 100)
+    ctx.fillText(q.text as string, w / 2, h / 2 - 120)
     if (q.type === "count" && q.symbols) {
       const symbols = q.symbols as string[]
       const sChar = q.symbolChar as string
       const cols = Math.min(6, symbols.length)
-      const startX = (w - cols * 50) / 2
+      const startX = (w - cols * 60) / 2
       symbols.forEach((_, i) => {
-        ctx.font = '36px system-ui'
+        ctx.font = '44px system-ui'
         ctx.textAlign = 'center'
-        ctx.fillText(sChar, startX + (i % cols) * 50, h / 2 - 20 + Math.floor(i / cols) * 50)
+        ctx.fillStyle = '#1565c0'
+        ctx.fillText(sChar, startX + (i % cols) * 60, h / 2 - 20 + Math.floor(i / cols) * 60)
       })
     }
     if (q.type === "recall" && q.items) {
       const items = q.items as string[]
       const hl = q.highlight as string
-      const startX = (w - items.length * 60) / 2
+      const startX = (w - items.length * 80) / 2
       items.forEach((item: string, i: number) => {
-        ctx.font = item === hl ? '44px system-ui' : '36px system-ui'
+        ctx.font = item === hl ? '56px system-ui' : '44px system-ui'
         ctx.textAlign = 'center'
         if (item === hl) {
           ctx.beginPath()
-          ctx.arc(startX + i * 60 + 30, h / 2 - 10, 30, 0, Math.PI * 2)
-          ctx.fillStyle = 'rgba(255,200,50,0.2)'
+          ctx.arc(startX + i * 80 + 40, h / 2 - 10, 40, 0, Math.PI * 2)
+          ctx.fillStyle = 'rgba(21,101,192,0.15)'
           ctx.fill()
         }
-        ctx.fillStyle = item === hl ? '#ffc832' : 'white'
-        ctx.fillText(item, startX + i * 60 + 30, h / 2 + 12)
+        ctx.fillStyle = item === hl ? '#1565c0' : '#000000'
+        ctx.fillText(item, startX + i * 80 + 40, h / 2 + 16)
       })
     }
     ctx.restore()
@@ -766,34 +775,34 @@ export class App {
     const game = this.currentGame as import('../games/musical-memory').MusicalMemory
     ctx.save()
     const notes = [
-      { label: "Do", color: "#e63c3c" },
-      { label: "Mi", color: "#3c82e6" },
-      { label: "Sol", color: "#3cc83c" },
-      { label: "Do'", color: "#e6d232" },
+      { label: "Do", color: "#c62828" },
+      { label: "Mi", color: "#1565c0" },
+      { label: "Sol", color: "#2e7d32" },
+      { label: "Do'", color: "#f9a825" },
     ]
-    const radius = 50
-    const totalW = notes.length * (radius * 2 + 20) - 20
+    const radius = 65
+    const totalW = notes.length * (radius * 2 + 28) - 28
     const startX = (w - totalW) / 2 + radius
     const y = h / 2
     const flash = game.getFlashNote()
     notes.forEach((note, i) => {
-      const x = startX + i * (radius * 2 + 20)
+      const x = startX + i * (radius * 2 + 28)
       ctx.beginPath()
       ctx.arc(x, y, radius, 0, Math.PI * 2)
       if (flash === i) {
         ctx.fillStyle = note.color
         ctx.shadowColor = note.color
-        ctx.shadowBlur = 30
+        ctx.shadowBlur = 40
       } else {
         ctx.fillStyle = note.color + '60'
         ctx.shadowBlur = 0
       }
       ctx.fill()
       ctx.shadowBlur = 0
-      ctx.fillStyle = 'white'
-      ctx.font = 'bold 28px system-ui'
+      ctx.fillStyle = '#ffffff'
+      ctx.font = 'bold 36px system-ui'
       ctx.textAlign = 'center'
-      ctx.fillText(note.label, x, y + 9)
+      ctx.fillText(note.label, x, y + 12)
     })
     ctx.restore()
   }
@@ -802,7 +811,7 @@ export class App {
     const game = this.currentGame as import('../games/cerca-parole').CercaParole
     ctx.save()
     const gs = game.getGridSize()
-    const cellSize = Math.min(36, (w - 60) / gs, (h - 80) / gs)
+    const cellSize = Math.min(44, (w - 80) / gs, (h - 100) / gs)
     const startX = (w - gs * cellSize) / 2
     const startY = (h - gs * cellSize) / 2 + 10
     for (let r = 0; r < gs; r++) {
@@ -810,22 +819,22 @@ export class App {
         const x = startX + c * cellSize
         const y = startY + r * cellSize
         if (game.isFound(r, c)) {
-          ctx.fillStyle = 'rgba(60,200,60,0.2)'
+          ctx.fillStyle = 'rgba(46,125,50,0.15)'
         } else if (game.isSelected(r, c)) {
-          ctx.fillStyle = 'rgba(100,180,255,0.3)'
+          ctx.fillStyle = 'rgba(21,101,192,0.2)'
         } else {
-          ctx.fillStyle = 'rgba(20,30,60,0.7)'
+          ctx.fillStyle = 'rgba(240,244,248,0.9)'
         }
         ctx.beginPath()
-        ctx.roundRect(x, y, cellSize - 2, cellSize - 2, 4)
+        ctx.roundRect(x, y, cellSize - 3, cellSize - 3, 6)
         ctx.fill()
         if (game.isFound(r, c)) {
-          ctx.strokeStyle = 'rgba(60,200,60,0.5)'
-          ctx.lineWidth = 1
+          ctx.strokeStyle = 'rgba(46,125,50,0.5)'
+          ctx.lineWidth = 2
           ctx.stroke()
         }
-        ctx.fillStyle = game.isFound(r, c) ? '#80d880' : '#eee'
-        ctx.font = `${Math.max(16, cellSize - 10)}px system-ui`
+        ctx.fillStyle = game.isFound(r, c) ? '#2e7d32' : '#000000'
+        ctx.font = `${Math.max(20, cellSize - 10)}px system-ui`
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
         ctx.fillText(game.grid[r][c], x + cellSize / 2, y + cellSize / 2)
@@ -838,9 +847,9 @@ export class App {
     const game = this.currentGame as import('../games/parole-incrociate').ParoleIncrociate
     ctx.save()
     const gs = game.gridSize
-    const cellSize = Math.min(40, (w - 80) / gs, (h - 80) / gs)
+    const cellSize = Math.min(48, (w - 100) / gs, (h - 100) / gs)
     const startX = (w - gs * cellSize) / 2
-    const startY = 50
+    const startY = 60
     const display = game.getGrid()
     const solution = game.getSolution()
     for (let r = 0; r < gs; r++) {
@@ -851,41 +860,41 @@ export class App {
         const filled = display[r]?.[c] !== undefined && display[r][c] !== ""
         const active = game.isActiveCell(r, c)
         if (!hasLetter) {
-          ctx.fillStyle = 'rgba(0,0,0,0.3)'
+          ctx.fillStyle = 'rgba(0,0,0,0.06)'
           ctx.beginPath()
-          ctx.roundRect(x, y, cellSize - 2, cellSize - 2, 3)
+          ctx.roundRect(x, y, cellSize - 3, cellSize - 3, 4)
           ctx.fill()
           continue
         }
         if (filled) {
-          ctx.fillStyle = 'rgba(60,200,60,0.15)'
-          ctx.strokeStyle = 'rgba(60,200,60,0.4)'
+          ctx.fillStyle = 'rgba(46,125,50,0.1)'
+          ctx.strokeStyle = 'rgba(46,125,50,0.4)'
         } else if (active) {
-          ctx.fillStyle = 'rgba(100,180,255,0.12)'
-          ctx.strokeStyle = 'rgba(100,180,255,0.5)'
+          ctx.fillStyle = 'rgba(21,101,192,0.1)'
+          ctx.strokeStyle = 'rgba(21,101,192,0.5)'
         } else {
-          ctx.fillStyle = 'rgba(20,30,60,0.8)'
-          ctx.strokeStyle = 'rgba(100,180,255,0.15)'
+          ctx.fillStyle = 'rgba(240,244,248,0.9)'
+          ctx.strokeStyle = 'rgba(21,101,192,0.15)'
         }
         ctx.beginPath()
-        ctx.roundRect(x, y, cellSize - 2, cellSize - 2, 4)
+        ctx.roundRect(x, y, cellSize - 3, cellSize - 3, 6)
         ctx.fill()
-        ctx.lineWidth = 1
+        ctx.lineWidth = 2
         ctx.stroke()
         if (filled) {
-          ctx.fillStyle = '#80d880'
+          ctx.fillStyle = '#2e7d32'
         } else if (active) {
-          ctx.fillStyle = '#64b4ff'
+          ctx.fillStyle = '#1565c0'
         } else if (hasLetter) {
-          ctx.fillStyle = 'rgba(255,255,255,0.15)'
+          ctx.fillStyle = 'rgba(0,0,0,0.2)'
         }
-        ctx.font = `${Math.max(16, cellSize - 12)}px system-ui`
+        ctx.font = `${Math.max(20, cellSize - 12)}px system-ui`
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
         if (filled) {
           ctx.fillText(display[r][c], x + cellSize / 2, y + cellSize / 2)
         } else if (hasLetter && active) {
-          ctx.fillText('.', x + cellSize / 2, y + cellSize / 2)
+          ctx.fillText('_', x + cellSize / 2, y + cellSize / 2)
         }
       }
     }
