@@ -57,6 +57,9 @@ export class App {
     this.games = createAllGames(this.difficulty, this.scoring)
     this._resize()
     this._initParticles()
+    if (this.profile.seniorMode) {
+      document.documentElement.classList.add('senior-mode')
+    }
     this._renderMenu()
     this._startLoop()
     this.poseDetector.init().then(() => {
@@ -196,25 +199,58 @@ export class App {
   private _lastGestureTime = 0
   private _gestureCooldown = 800
   private _gestureIndicator: HTMLElement | null = null
+  private _hugeFeedbackTimer: ReturnType<typeof setTimeout> | null = null
+
+  private _showHugeFeedback(text: string, emoji: string, isGood: boolean): void {
+    const existing = this.overlay.querySelector('.huge-feedback')
+    if (existing) existing.remove()
+    if (this._hugeFeedbackTimer) clearTimeout(this._hugeFeedbackTimer)
+    const el = document.createElement('div')
+    el.className = `huge-feedback ${isGood ? 'huge-correct' : 'huge-wrong'}`
+    el.innerHTML = `<div class="huge-emoji">${emoji}</div><div class="huge-text">${text}</div>`
+    this.overlay.appendChild(el)
+    this._hugeFeedbackTimer = setTimeout(() => {
+      const el2 = this.overlay.querySelector('.huge-feedback')
+      if (el2) el2.remove()
+    }, 2000)
+  }
+
+  private _showReward(stars: number, message: string): void {
+    const existing = this.overlay.querySelector('.reward-overlay')
+    if (existing) existing.remove()
+    const el = document.createElement('div')
+    el.className = 'reward-overlay'
+    const starStr = '\u2B50'.repeat(stars)
+    el.innerHTML = `
+      <div class="reward-stars">${starStr}</div>
+      <div class="reward-message">${message}</div>
+      <div class="reward-score">+${this.scoring.getTotal()} punti</div>
+    `
+    this.overlay.appendChild(el)
+    this._burstConfetti(this.canvas.width / 2, this.canvas.height / 3, 30)
+    this.voice.speak(message, true)
+    setTimeout(() => {
+      const el2 = this.overlay.querySelector('.reward-overlay')
+      if (el2) el2.remove()
+    }, 3000)
+  }
 
   private _updateFeedback(poseData: PoseData | null): void {
     const fbEl = this.overlay.querySelector('.feedback-bar')
     if (fbEl && this.currentGame) {
       const msg = this.currentGame.feedbackMessage
-      if (msg !== this._lastFeedbackMsg) {
+      if (msg !== this._lastFeedbackMsg && msg) {
         const isCorrect = msg.includes('Perfetto') || msg.includes('Corretto') || msg.includes('corretta') || msg.includes('Giusto') || msg.includes('Bravo') || msg.includes('Ottimo') || msg.includes('giusto') || msg.includes('Trovata')
         const isWrong = msg.includes('sbagliato') || msg.includes('riprova') || msg.includes('Riprova') || msg.includes('Non preoccuparti') || msg.includes('attenzione') || msg.includes('sbagliata') || msg.includes('errore') || msg.includes('non trovata')
-        const isComplete = msg.includes('completato') || msg.includes('Completato') || msg.includes('finish') || msg.includes('Fine')
-        fbEl.classList.remove('correct', 'wrong', 'complete')
-        if (isComplete) {
-          fbEl.classList.add('correct')
-          fbEl.innerHTML = '\u{1F3C6} ' + msg
-        } else if (isCorrect) {
+        fbEl.classList.remove('correct', 'wrong')
+        if (isCorrect) {
           fbEl.classList.add('correct')
           fbEl.innerHTML = '\u2705 ' + msg
+          if (msg.length < 40) this._showHugeFeedback(msg, '\u2705', true)
         } else if (isWrong) {
           fbEl.classList.add('wrong')
           fbEl.innerHTML = '\u274C ' + msg
+          if (msg.length < 40) this._showHugeFeedback(msg, '\u274C', false)
         } else {
           fbEl.textContent = msg
         }
@@ -289,8 +325,20 @@ export class App {
     el.className = 'webcam-status'
     el.innerHTML = this.poseDetector.enabled
       ? '\u{1F4F7} Webcam attiva'
-      : '\u{1F6AB} Webcam non disponibile - usa il tocco'
+      : '\u{1F6AB} Webcam assente - usa il tocco'
     this.overlay.appendChild(el)
+  }
+
+  private _addPersistentRepeat(instruction: string): void {
+    const existing = this.overlay.querySelector('.persistent-repeat')
+    if (existing) existing.remove()
+    const btn = document.createElement('button')
+    btn.className = 'persistent-repeat'
+    btn.setAttribute('aria-label', 'Ripeti istruzioni')
+    btn.innerHTML = '\u{1F50A} Ripeti'
+    btn.addEventListener('click', () => this.voice.speak(instruction, true))
+    this.overlay.appendChild(btn)
+    this.voice.startAutoRepeat(instruction, 15000)
   }
 
   private _lastPose: PoseData | null = null
@@ -1137,12 +1185,15 @@ export class App {
     choices.appendChild(reportBtn)
 
     screen.appendChild(choices)
-    this.overlay.appendChild(screen)
 
-    this.voice.startAutoRepeat(
-      'Scegli Giochi, Respiro o Risultati',
-      20000
-    )
+    const caregiverBtn = document.createElement('button')
+    caregiverBtn.className = 'menu-caregiver-btn'
+    caregiverBtn.innerHTML = '\u{1F4CA} Caregiver'
+    caregiverBtn.addEventListener('click', () => this._showCaregiverDashboard())
+    screen.appendChild(caregiverBtn)
+
+    this.overlay.appendChild(screen)
+    this._addPersistentRepeat('Scegli Giochi, Respiro o Risultati')
   }
 
   private _showGameChoices(): void {
@@ -1187,11 +1238,7 @@ export class App {
 
     screen.appendChild(choices)
     this.overlay.appendChild(screen)
-
-    this.voice.startAutoRepeat(
-      'Scegli un gioco da fare. Oppure fai una sessione completa con più giochi in sequenza.',
-      20000
-    )
+    this._addPersistentRepeat('Scegli un gioco oppure sessione completa')
   }
 
   private _addVoiceBar(instruction: string): void {
@@ -1310,7 +1357,7 @@ export class App {
       'Cerca Parole': 'Trova le parole nella griglia',
     }
     const instruction = voiceInstructions[g.displayName] || `Gioca a ${g.displayName}`
-    this._addVoiceBar(instruction)
+    this._addPersistentRepeat(instruction)
 
     document.getElementById('btn-back')?.addEventListener('click', () => this._backToMenu())
   }
@@ -1870,19 +1917,30 @@ export class App {
     if (!this.currentGame) return
     const g = this.currentGame
     this.session.logGame(g.name, g.result)
+
+    const acc = g.result.accuracy ?? 0
+    const stars = acc >= 0.8 ? 3 : acc >= 0.5 ? 2 : 1
+    const msgs = ['Ci riproveremo!', 'Bravo, continua!', 'Ottimo lavoro!']
+    const msg = msgs[stars - 1]
+    this._showReward(stars, msg)
+
     if (this.sessionMode && this.gameIndex >= 0 && this.gameIndex < this.games.length - 1) {
-      this.gameIndex++
-      const nextGame = this.games[this.gameIndex]
-      if (nextGame.state === "idle" || nextGame.state === "finished") {
-        this.currentGame = nextGame
-        this.session.currentGame = nextGame.name
-        nextGame.start()
-        this._renderGameUI()
-        return
-      }
+      setTimeout(() => {
+        this.gameIndex++
+        const nextGame = this.games[this.gameIndex]
+        if (nextGame.state === "idle" || nextGame.state === "finished") {
+          this.currentGame = nextGame
+          this.session.currentGame = nextGame.name
+          nextGame.start()
+          this._renderGameUI()
+        }
+      }, 2000)
+      return
     }
-    this.state = "finished"
-    this._renderFinished()
+    setTimeout(() => {
+      this.state = "finished"
+      this._renderFinished()
+    }, 1500)
   }
 
   private _renderFinished(): void {
@@ -1918,6 +1976,7 @@ export class App {
     this.overlay.appendChild(container)
     document.getElementById('btn-menu')?.addEventListener('click', () => this._backToMenu())
     document.getElementById('btn-report')?.addEventListener('click', () => this._showReport())
+    this._addPersistentRepeat('Sessione completata. Torna al menu o guarda il report.')
   }
 
   private _showReport(): void {
@@ -1948,6 +2007,68 @@ export class App {
     container.innerHTML = html
     this.overlay.appendChild(container)
     document.getElementById('btn-back-report')?.addEventListener('click', () => this._backToMenu())
+    this._addPersistentRepeat('Report delle sessioni. Premi indietro per tornare al menu.')
+  }
+
+  private _showCaregiverDashboard(): void {
+    this.overlay.innerHTML = ''
+    const container = document.createElement('div')
+    container.className = 'caregiver-dashboard'
+    let html = `
+      <button class="btn btn-back" id="btn-dash-back">\u{2190} Indietro</button>
+      <h2 class="dash-title">\u{1F4CA} Dashboard Caregiver</h2>
+    `
+    try {
+      const sessions = JSON.parse(localStorage.getItem('brainmove_sessions') ?? '[]')
+      if (sessions.length === 0) {
+        html += '<p class="dash-empty">Nessuna sessione ancora completata</p>'
+      } else {
+        const last = sessions[sessions.length - 1]
+        const totalSessions = sessions.length
+        let totalScore = 0, totalMin = 0, totalGames = 0
+        sessions.forEach((s: Record<string, unknown>) => {
+          totalScore += Number(s.totalScore ?? 0)
+          totalMin += Math.round(Number(s.durationSeconds ?? 0) / 60)
+          totalGames += (s.games as Array<unknown>)?.length ?? 0
+        })
+        html += `
+          <div class="dash-summary">
+            <div class="dash-stat">
+              <span class="dash-stat-value">${totalSessions}</span>
+              <span class="dash-stat-label">Sessioni</span>
+            </div>
+            <div class="dash-stat">
+              <span class="dash-stat-value">${totalScore}</span>
+              <span class="dash-stat-label">Punti totali</span>
+            </div>
+            <div class="dash-stat">
+              <span class="dash-stat-value">${totalMin}</span>
+              <span class="dash-stat-label">Minuti totali</span>
+            </div>
+            <div class="dash-stat">
+              <span class="dash-stat-value">${totalGames}</span>
+              <span class="dash-stat-label">Giochi fatti</span>
+            </div>
+          </div>
+          <div class="dash-ultima">Ultima sessione: ${String(last.sessionId ?? '')}</div>
+        `
+        html += '<div class="dash-recommendations"><h3>\u{1F4A1} Raccomandazioni</h3>'
+        if (totalSessions >= 5) {
+          html += '<p>Ottima costanza! Continua cos\u00EC.</p>'
+        } else if (totalSessions >= 2) {
+          html += '<p>Buon inizio! Prova a fare una sessione al giorno.</p>'
+        } else {
+          html += '<p>Inizia con una sessione completa per vedere i progressi.</p>'
+        }
+        html += '</div>'
+      }
+    } catch {
+      html += '<p class="dash-empty">Errore nel caricamento dati</p>'
+    }
+    container.innerHTML = html
+    this.overlay.appendChild(container)
+    document.getElementById('btn-dash-back')?.addEventListener('click', () => this._renderMenu())
+    this._addPersistentRepeat('Dashboard Caregiver: progressi e raccomandazioni')
   }
 
   private _backToMenu(): void {
