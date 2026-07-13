@@ -22,6 +22,8 @@ export class PassiRicorda extends BaseGame {
   itemResults: Array<"correct" | "wrong" | null> = []
   feedbackTimer = 0
   lastAttemptCorrect = false
+  lastItemResult: "correct" | "wrong" | null = null
+  lastItemValue: string | null = null
 
   constructor(difficulty: Difficulty, scoring: Scoring) {
     super(difficulty, scoring)
@@ -43,6 +45,8 @@ export class PassiRicorda extends BaseGame {
     this.totalAttempts = 0
     this.itemResults = []
     this.lastAttemptCorrect = false
+    this.lastItemResult = null
+    this.lastItemValue = null
     this.feedbackMessage = "Guarda la sequenza e cammina sul posto"
   }
 
@@ -76,18 +80,24 @@ export class PassiRicorda extends BaseGame {
           this.userAnswer = []
           this.itemResults = []
           this.phase = "recall"
+          this.lastItemResult = null
+          this.lastItemValue = null
           this.feedbackMessage = "Riprova! Scegli gli elementi nell'ordine giusto"
         }
       }
     }
   }
 
-  selectItem(item: string): void {
-    if (this.phase !== "recall") return
+  selectItem(item: string): "correct" | "wrong" | null {
+    if (this.phase !== "recall") return null
+    const idx = this.userAnswer.length
+    const result: "correct" | "wrong" = item === this.sequence[idx] ? "correct" : "wrong"
+    this.lastItemResult = result
+    this.lastItemValue = item
     this.userAnswer.push(item)
-    const idx = this.userAnswer.length - 1
-    this.itemResults.push(item === this.sequence[idx] ? "correct" : "wrong")
+    this.itemResults.push(result)
     if (this.userAnswer.length === this.sequence.length) this._checkAnswer()
+    return result
   }
 
   private _checkAnswer(): void {
@@ -102,6 +112,8 @@ export class PassiRicorda extends BaseGame {
     }
     this.phase = "feedback"
     this.feedbackTimer = 2.0
+    this.lastItemResult = null
+    this.lastItemValue = null
   }
 
   getCurrentItem(): string | null {

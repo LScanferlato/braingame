@@ -38,7 +38,7 @@ export class App {
   private sessionMode = false
   private pallonciniHandler: ((e: MouseEvent) => void) | null = null
   private lastPhase: string | null = null
-  private phaseCheckGames = new Set(['mappa_stanza', 'memory_carte', 'memory_immagini', 'cerca_parole'])
+  private phaseCheckGames = new Set(['mappa_stanza', 'memory_carte', 'memory_immagini', 'cerca_parole', 'passi_ricorda', 'puzzle', 'quiz', 'brain_trainer', 'sequenza_simboli'])
   private lastTime = 0
   private particles: Array<{ x: number; y: number; vx: number; vy: number; life: number; maxLife: number; size: number; color: string }> = []
   private confetti: Array<{ x: number; y: number; vx: number; vy: number; life: number; maxLife: number; size: number; color: string; rotation: number; rotSpeed: number }> = []
@@ -134,6 +134,11 @@ export class App {
     else if (g.name === 'memory_immagini') this._renderMemoryImmaginiUI(newArea)
     else if (g.name === 'mappa_stanza') this._renderMappaUI(newArea)
     else if (g.name === 'cerca_parole') this._renderCercaParoleUI(newArea)
+    else if (g.name === 'passi_ricorda') this._renderPassiRicordaUI(newArea)
+    else if (g.name === 'puzzle') this._renderPuzzleUI(newArea)
+    else if (g.name === 'quiz') this._renderQuizUI(newArea)
+    else if (g.name === 'brain_trainer') this._renderBrainTrainerUI(newArea)
+    else if (g.name === 'sequenza_simboli') this._renderSequenzaUI(newArea)
     oldArea.parentNode?.replaceChild(newArea, oldArea)
   }
 
@@ -262,7 +267,7 @@ export class App {
       case "diario_missioni": break
       case "memory_carte": this._drawMemoryCarte(ctx, w, h); break
       case "sequenza_simboli": this._drawSequenza(ctx, w, h); break
-      case "parole_incrociate": break
+      case "parole_incrociate": this._drawParole(ctx, w, h); break
       case "basket": this._drawBasket(ctx, w, h); break
       case "puzzle": this._drawPuzzle(ctx, w, h); break
       case "memory_immagini": this._drawMemoryImmagini(ctx, w, h); break
@@ -829,6 +834,64 @@ export class App {
     ctx.restore()
   }
 
+  private _drawParole(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+    const game = this.currentGame as import('../games/parole-incrociate').ParoleIncrociate
+    ctx.save()
+    const gs = game.gridSize
+    const cellSize = Math.min(40, (w - 80) / gs, (h - 80) / gs)
+    const startX = (w - gs * cellSize) / 2
+    const startY = 50
+    const display = game.getGrid()
+    const solution = game.getSolution()
+    for (let r = 0; r < gs; r++) {
+      for (let c = 0; c < gs; c++) {
+        const x = startX + c * cellSize
+        const y = startY + r * cellSize
+        const hasLetter = solution[r]?.[c] !== undefined && solution[r][c] !== ""
+        const filled = display[r]?.[c] !== undefined && display[r][c] !== ""
+        const active = game.isActiveCell(r, c)
+        if (!hasLetter) {
+          ctx.fillStyle = 'rgba(0,0,0,0.3)'
+          ctx.beginPath()
+          ctx.roundRect(x, y, cellSize - 2, cellSize - 2, 3)
+          ctx.fill()
+          continue
+        }
+        if (filled) {
+          ctx.fillStyle = 'rgba(60,200,60,0.15)'
+          ctx.strokeStyle = 'rgba(60,200,60,0.4)'
+        } else if (active) {
+          ctx.fillStyle = 'rgba(100,180,255,0.12)'
+          ctx.strokeStyle = 'rgba(100,180,255,0.5)'
+        } else {
+          ctx.fillStyle = 'rgba(20,30,60,0.8)'
+          ctx.strokeStyle = 'rgba(100,180,255,0.15)'
+        }
+        ctx.beginPath()
+        ctx.roundRect(x, y, cellSize - 2, cellSize - 2, 4)
+        ctx.fill()
+        ctx.lineWidth = 1
+        ctx.stroke()
+        if (filled) {
+          ctx.fillStyle = '#80d880'
+        } else if (active) {
+          ctx.fillStyle = '#64b4ff'
+        } else if (hasLetter) {
+          ctx.fillStyle = 'rgba(255,255,255,0.15)'
+        }
+        ctx.font = `${Math.max(12, cellSize - 12)}px system-ui`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        if (filled) {
+          ctx.fillText(display[r][c], x + cellSize / 2, y + cellSize / 2)
+        } else if (hasLetter && active) {
+          ctx.fillText('.', x + cellSize / 2, y + cellSize / 2)
+        }
+      }
+    }
+    ctx.restore()
+  }
+
   private _drawPalloncini(ctx: CanvasRenderingContext2D, w: number, h: number): void {
     const game = this.currentGame as import('../games/palloncini').Palloncini
     ctx.save()
@@ -848,84 +911,73 @@ export class App {
 
     for (const b of game.balloons) {
       const r = b.radius
-      const bw = r * 1.6
-      const bh = r * 2.4
+      const bw = r * 1.4
+      const bh = r * 2.0
       const wobX = Math.sin(b.wobbleT * 1.5) * 3
+      const wobY = Math.sin(b.wobbleT * 2.0) * 1.5
       const cx = b.x + wobX
-      const cy = b.y
-      const topY = cy - bh * 0.45
-      const botY = cy + bh * 0.45
+      const cy = b.y + wobY
 
-      // glow
-      ctx.beginPath()
-      ctx.arc(cx, cy, r * 1.1, 0, Math.PI * 2)
-      ctx.fillStyle = b.color + '20'
-      ctx.fill()
+      // outer glow
+      for (let g = 0; g < 3; g++) {
+        ctx.beginPath()
+        ctx.arc(cx, cy, r * (1.1 + g * 0.3), 0, Math.PI * 2)
+        ctx.fillStyle = b.color + `${10 + g * 5}`
+        ctx.fill()
+      }
 
-      // balloon teardrop shape
+      // balloon body
       ctx.beginPath()
-      ctx.moveTo(cx, topY)
-      ctx.bezierCurveTo(cx + bw * 0.45, topY, cx + bw * 0.7, cy - bh * 0.1, cx + bw * 0.6, cy)
-      ctx.bezierCurveTo(cx + bw * 0.52, cy + bh * 0.15, cx + bw * 0.2, botY - bh * 0.05, cx, botY)
-      ctx.bezierCurveTo(cx - bw * 0.2, botY - bh * 0.05, cx - bw * 0.52, cy + bh * 0.15, cx - bw * 0.6, cy)
-      ctx.bezierCurveTo(cx - bw * 0.7, cy - bh * 0.1, cx - bw * 0.45, topY, cx, topY)
+      ctx.ellipse(cx, cy, bw * 0.6, bh * 0.5, 0, 0, Math.PI * 2)
       ctx.closePath()
 
-      // gradient fill
-      const grad = ctx.createRadialGradient(cx - bw * 0.15, cy - bh * 0.15, 0, cx, cy, bw * 0.6)
+      const grad = ctx.createRadialGradient(cx - bw * 0.2, cy - bh * 0.2, r * 0.1, cx, cy, bw * 0.6)
       grad.addColorStop(0, '#ffffff')
-      grad.addColorStop(0.15, b.color)
-      grad.addColorStop(0.7, b.color)
-      grad.addColorStop(1, '#000000')
+      grad.addColorStop(0.1, b.color)
+      grad.addColorStop(0.65, b.color)
+      grad.addColorStop(0.85, b.color + 'cc')
+      grad.addColorStop(1, 'rgba(0,0,0,0.3)')
       ctx.fillStyle = grad
       ctx.fill()
 
-      // inner glow / highlight overlay
-      ctx.beginPath()
-      ctx.moveTo(cx, topY + bh * 0.08)
-      ctx.bezierCurveTo(cx + bw * 0.25, topY + bh * 0.1, cx + bw * 0.35, cy - bh * 0.05, cx + bw * 0.3, cy - bh * 0.1)
-      ctx.bezierCurveTo(cx + bw * 0.2, cy - bh * 0.2, cx - bw * 0.15, cy - bh * 0.2, cx - bw * 0.25, cy - bh * 0.1)
-      ctx.bezierCurveTo(cx - bw * 0.3, cy - bh * 0.05, cx - bw * 0.2, topY + bh * 0.1, cx, topY + bh * 0.08)
-      ctx.closePath()
-      ctx.fillStyle = 'rgba(255,255,255,0.15)'
-      ctx.fill()
+      ctx.strokeStyle = b.color + '66'
+      ctx.lineWidth = 1.5
+      ctx.stroke()
 
-      // specular highlight 1 (upper left)
+      // specular highlight (upper-left)
       ctx.save()
       ctx.beginPath()
-      ctx.ellipse(cx - bw * 0.2, cy - bh * 0.2, bw * 0.12, bh * 0.08, -0.4, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(255,255,255,0.5)'
+      ctx.ellipse(cx - bw * 0.22, cy - bh * 0.22, bw * 0.13, bh * 0.07, -0.5, 0, Math.PI * 2)
+      ctx.fillStyle = 'rgba(255,255,255,0.45)'
       ctx.fill()
-
-      // specular highlight 2 (upper right, smaller)
       ctx.beginPath()
-      ctx.ellipse(cx + bw * 0.15, cy - bh * 0.25, bw * 0.06, bh * 0.04, 0.3, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(255,255,255,0.25)'
+      ctx.ellipse(cx + bw * 0.14, cy - bh * 0.28, bw * 0.06, bh * 0.035, 0.3, 0, Math.PI * 2)
+      ctx.fillStyle = 'rgba(255,255,255,0.2)'
       ctx.fill()
       ctx.restore()
 
       // knot
-      const knotY = botY + 2
+      const knotY = cy + bh * 0.5 + 3
       ctx.beginPath()
-      ctx.moveTo(cx - 5, knotY)
-      ctx.lineTo(cx + 5, knotY)
-      ctx.lineTo(cx + 3, knotY + 7)
-      ctx.lineTo(cx - 3, knotY + 7)
+      ctx.moveTo(cx - 4, knotY)
+      ctx.lineTo(cx + 4, knotY)
+      ctx.lineTo(cx + 3, knotY + 6)
+      ctx.lineTo(cx - 3, knotY + 6)
       ctx.closePath()
       ctx.fillStyle = b.color
       ctx.fill()
-      ctx.strokeStyle = b.color
-      ctx.lineWidth = 1
+      ctx.strokeStyle = b.color + '88'
+      ctx.lineWidth = 0.5
       ctx.stroke()
 
-      // string
-      const stringEnd = knotY + 26
+      // string with sway
+      const stringEnd = knotY + 24
       ctx.beginPath()
-      ctx.moveTo(cx, knotY + 5)
-      const sway = Math.sin(b.wobbleT * 2.5) * 8
-      ctx.quadraticCurveTo(cx - 8 + sway, knotY + 12, cx - 3 + sway * 0.6, stringEnd)
-      ctx.strokeStyle = 'rgba(200,200,200,0.35)'
-      ctx.lineWidth = 1.5
+      ctx.moveTo(cx, knotY + 4)
+      const sway = Math.sin(b.wobbleT * 3) * 10
+      ctx.quadraticCurveTo(cx + sway, (knotY + stringEnd) / 2, cx + sway * 0.3, stringEnd)
+      ctx.strokeStyle = 'rgba(200,200,200,0.3)'
+      ctx.lineWidth = 1
       ctx.stroke()
     }
 
@@ -1127,10 +1179,11 @@ export class App {
       for (let r = 0; r < gs; r++) {
         for (let c = 0; c < gs; c++) {
           const cell = document.createElement('div')
-          cell.className = 'parole-cell'
+          const active = game.isActiveCell(r, c)
+          const part = game.isPartOfAnyWord(r, c)
+          cell.className = `parole-cell${display[r][c] ? ' filled' : ''}${active ? ' active' : ''}${part && !active && !display[r][c] ? ' pending' : ''}`
           cell.textContent = display[r][c] || ''
-          if (display[r][c]) cell.classList.add('filled')
-          cell.addEventListener('click', () => game.selectCell(r, c))
+          cell.addEventListener('click', () => { game.selectCell(r, c); renderGrid() })
           gridEl.appendChild(cell)
         }
       }
@@ -1264,10 +1317,22 @@ export class App {
         const selected = new Set(game.userAnswer)
         opts.forEach(o => {
           const btn = document.createElement('button')
-          btn.className = 'btn btn-option btn-icon'
+          const isLastResult = game.lastItemValue === o && game.lastItemResult !== null
+          const resultClass = isLastResult ? (game.lastItemResult === 'correct' ? 'correct-pulse' : 'wrong-pulse') : ''
+          btn.className = `btn btn-option btn-icon ${resultClass}`
           btn.innerHTML = `${game.getItemIcon(o)} ${o}`
           btn.disabled = selected.has(o)
-          btn.addEventListener('click', () => { game.selectItem(o); renderOpts() })
+          btn.addEventListener('click', () => {
+            const nextIdx = game.userAnswer.length
+            const isCorrect = nextIdx < game.sequence.length && o === game.sequence[nextIdx]
+            const animClass = isCorrect ? 'correct-pulse' : 'wrong-pulse'
+            btn.classList.add(animClass)
+            btn.disabled = true
+            setTimeout(() => {
+              game.selectItem(o)
+              renderOpts()
+            }, 400)
+          })
           container.appendChild(btn)
         })
       }

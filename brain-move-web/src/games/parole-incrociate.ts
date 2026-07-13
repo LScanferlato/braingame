@@ -216,8 +216,18 @@ export class ParoleIncrociate extends BaseGame {
   getHints(): string[] {
     return this.placedWords.map((wp, i) => {
       const dir = wp.direction === "across" ? " → " : " ↓ "
-      return `${i + 1}. ${wp.hint}${dir}${wp.word}${wp.solved ? " ✓" : ""}`
+      return `${i + 1}. ${wp.hint}${dir}${wp.solved ? " ✓" : ""}`
     })
+  }
+  getActiveWord(): PlacedWord | null { return this.placedWords[this.currentWordIndex] ?? null }
+  isActiveCell(r: number, c: number): boolean {
+    const w = this.getActiveWord()
+    if (!w || w.solved) return false
+    if (w.direction === "across") return w.row === r && c >= w.col && c < w.col + w.word.length
+    return w.col === c && r >= w.row && r < w.row + w.word.length
+  }
+  isPartOfAnyWord(r: number, c: number): boolean {
+    return this.solution[r]?.[c] !== undefined && this.solution[r][c] !== ""
   }
   getProgress(): number { return this.correctWords / Math.max(this.totalWords, 1) }
 }

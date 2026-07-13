@@ -385,6 +385,23 @@ html, body {
 
 .parole-cell.filled { color: var(--accent); }
 
+.parole-cell.active {
+  border-color: var(--accent);
+  background: rgba(100,180,255,0.12);
+}
+
+.parole-cell.pending {
+  border-color: rgba(100,180,255,0.25);
+  background: rgba(100,180,255,0.05);
+}
+
+.parole-cell.solved {
+  background: rgba(60,200,60,0.12);
+  border-color: rgba(60,200,60,0.3);
+  color: #80d880;
+  cursor: default;
+}
+
 .parole-hints {
   margin-top: 12px;
   font-size: 12px;
@@ -393,6 +410,10 @@ html, body {
 }
 
 .parole-hints div { padding: 2px 0; }
+
+.parole-hints .hint-solved {
+  color: #80d880;
+}
 
 .parole-input-row {
   display: flex;
@@ -593,6 +614,159 @@ html, body {
 ::-webkit-scrollbar-thumb { background: rgba(100,180,255,0.2); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(100,180,255,0.4); }
 
+/* ── Background particles effect ── */
+
+#game-canvas {
+  background: radial-gradient(ellipse at 20% 50%, rgba(20,40,80,0.4) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(60,20,100,0.3) 0%, transparent 50%),
+              radial-gradient(ellipse at 50% 80%, rgba(20,80,60,0.2) 0%, transparent 50%),
+              var(--bg-primary);
+}
+
+/* ── Game area glass panel ── */
+
+.game-area {
+  position: relative;
+}
+
+.game-area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(30,50,100,0.08) 0%, transparent 70%);
+  pointer-events: none;
+  border-radius: var(--radius-lg);
+}
+
+/* ── Parole hints with solved state ── */
+
+.parole-hints .hint-solved {
+  color: #80d880;
+}
+
+/* ── Cerca Parole word list improvements ── */
+
+.cerca-parole-word {
+  backdrop-filter: blur(4px);
+}
+
+.cerca-parole-word.found {
+  animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 0.7; }
+}
+
+/* ── Parole cell improvements ── */
+
+.parole-cell {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.parole-cell:hover:not(.filled) {
+  background: rgba(100,180,255,0.08);
+  border-color: rgba(100,180,255,0.3);
+}
+
+.parole-cell.active {
+  box-shadow: 0 0 12px rgba(100,180,255,0.15);
+}
+
+/* ── General card improvements ── */
+
+.game-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.game-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(100,180,255,0.3), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.game-card:hover::after {
+  opacity: 1;
+}
+
+/* ── Score badge improvements ── */
+
+.score-badge {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+/* ── Progress fill improvements ── */
+
+.progress-container {
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.progress-fill {
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  animation: shimmer 2s linear infinite;
+}
+
+/* ── Select all that apply improvements ── */
+
+.btn-option:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ── Finished stats animation ── */
+
+.finished-container {
+  animation: fadeInUp 0.5s ease;
+}
+
+.stat-value {
+  animation: countUp 0.6s ease backwards;
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Memory card improvements ── */
+
+.memory-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.memory-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.memory-card.revealed::before {
+  background: linear-gradient(135deg, rgba(100,180,255,0.08) 0%, transparent 50%);
+}
+
 /* ── Visual Effects ── */
 
 @keyframes glowPulse {
@@ -686,6 +860,7 @@ html, body {
 .game-card:nth-child(15) { animation-delay: 0.30s; }
 .game-card:nth-child(16) { animation-delay: 0.32s; }
 .game-card:nth-child(17) { animation-delay: 0.34s; }
+.game-card:nth-child(18) { animation-delay: 0.36s; }
 
 .feedback-bar.correct {
   color: #40d9a0;
